@@ -1382,6 +1382,40 @@
   color: var(--accent);
 }
 
+/* ===== About: projects pointer ===== */
+.about-projects-pointer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.about-projects-pointer p {
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-muted);
+  max-width: 42rem;
+}
+
+.about-projects-pointer .page-btn {
+  align-self: flex-start;
+}
+
+@media (min-width: 768px) {
+  .about-projects-pointer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+}
+
 /* ===== CV page ===== */
 .cv-page .page-section--border {
   padding-top: 3rem;

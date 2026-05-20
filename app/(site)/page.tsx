@@ -36,9 +36,6 @@ export default function HomePage() {
             <a href="/projects" className="page-btn page-btn--primary">
               View projects
             </a>
-            <a href="/cv" className="page-btn page-btn--ghost">
-              Download CV
-            </a>
             <a href="/contact" className="page-btn page-btn--ghost">
               Get in touch
             </a>
