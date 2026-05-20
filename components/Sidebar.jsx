@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FolderKanban, Home, Mail, UserRound, X } from 'lucide-react';
+import { FileText, FolderKanban, Home, Mail, UserRound, X } from 'lucide-react';
 import { SiGithub, SiInstagram } from 'react-icons/si';
 import './Sidebar.css';
 
@@ -12,7 +12,8 @@ const NAV = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/about', label: 'About', icon: UserRound },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
-  { href: '/contact', label: 'Contact', icon: Mail }
+  { href: '/contact', label: 'Contact', icon: Mail },
+  { href: '/cv', label: 'CV', icon: FileText }
 ];
 
 export default function Sidebar() {
