@@ -24,7 +24,7 @@ export default function HomePage() {
             </motion.h1>
           </div>
           <div className="overflow-hidden mb-4">
-            <motion.h1 variants={lineReveal} className="page-title page-title--muted text-gradient">
+            <motion.h1 variants={lineReveal} className="page-title text-gradient">
               <span className="serif-accent">Edmund.</span>
             </motion.h1>
           </div>

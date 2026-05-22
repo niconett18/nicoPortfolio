@@ -101,10 +101,14 @@ export default function ProjectsPage() {
             />
             <motion.div
               className="project-drawer"
-              initial={isMobile ? { y: '100%', opacity: 0 } : { x: '100%', opacity: 0 }}
-              animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
-              exit={isMobile ? { y: '100%', opacity: 0 } : { x: '100%', opacity: 0 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              initial={isMobile ? { y: '100%' } : { x: '100%' }}
+              animate={isMobile ? { y: 0 } : { x: 0 }}
+              exit={isMobile ? { y: '100%' } : { x: '100%' }}
+              transition={
+                isMobile
+                  ? { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
+                  : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+              }
             >
               <div className="project-drawer-handle" />
               <div className="project-drawer-image">

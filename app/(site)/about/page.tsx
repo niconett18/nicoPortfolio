@@ -215,14 +215,10 @@ export default function AboutPage() {
               <h3>{s.label}</h3>
               <ul>
                 {s.items.map((item) => (
-                  <motion.li
-                    key={item.name}
-                    whileHover={{ x: 4 }}
-                    transition={{ type: 'spring', stiffness: 320, damping: 22 }}
-                  >
+                  <li key={item.name} className="cv-skill-item">
                     {item.icon ? <item.icon /> : <span className="cv-skill-bullet" />}
                     <span>{item.name}</span>
-                  </motion.li>
+                  </li>
                 ))}
               </ul>
             </motion.div>

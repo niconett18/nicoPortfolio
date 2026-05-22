@@ -9,12 +9,15 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--hairline);
-  border-radius: 6px;
+  border-radius: 3px;
   background: rgba(10, 10, 14, 0.92);
   backdrop-filter: blur(14px);
   color: var(--ink);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  transition:
+    border-color 0.15s ease-out,
+    background 0.15s ease-out,
+    transform 0.1s ease-out;
 }
 
 .sidebar-mobile-trigger:hover {
@@ -111,7 +114,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--hairline);
-  border-radius: 6px;
+  border-radius: 3px;
   background: transparent;
   color: var(--ink);
   cursor: pointer;
@@ -141,45 +144,22 @@
   gap: 1rem;
   min-height: 3.25rem;
   padding: 0.75rem 1rem 0.75rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 3px;
   text-decoration: none;
   color: var(--ink-muted);
-  transition: all 0.3s ease;
+  transition:
+    background 0.15s ease-out,
+    color 0.15s ease-out;
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--ink);
-}
-
-.sidebar-link::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 2px;
-  background: var(--accent);
-  border-radius: 0 1px 1px 0;
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.2s ease;
-}
-
-.sidebar-link:hover {
-  color: var(--ink);
-}
-
-.sidebar-link:hover::before {
-  transform: scaleY(1);
 }
 
 .sidebar-link--active {
   color: var(--ink);
-}
-
-.sidebar-link--active::before {
-  transform: scaleY(1);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .sidebar-link-icon {
@@ -248,22 +228,29 @@
   width: 2.5rem;
   height: 2.5rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.02);
   color: var(--ink-muted);
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition:
+    background 0.15s ease-out,
+    border-color 0.15s ease-out,
+    color 0.15s ease-out,
+    transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.sidebar-social:hover {
-  color: #ffffff;
-  border-color: var(--accent);
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-focus) 100%);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .sidebar-social:hover {
+    color: #ffffff;
+    border-color: var(--accent);
+    background: var(--accent);
+    transform: translateY(-2px);
+  }
 }
 
 .sidebar-social:active {
   transform: scale(0.95);
+  transition-duration: 0.1s;
 }
 
 .sidebar-rail {

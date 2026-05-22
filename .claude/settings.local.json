@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npx skills *)",
+      "Bash(Get-ChildItem -Recurse -Depth 3)",
+      "Bash(Select-Object FullName)",
+      "Bash(npx tsc *)",
+      "Bash(node *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
