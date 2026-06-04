@@ -5,13 +5,13 @@ const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://opencode.ai/zen/v
 
 const SYSTEM_PROMPT = `You are a friendly portfolio assistant for Nicholas Edmund Tanaka. Answer questions about his background, experience, projects, skills, and contact info.
 
-FORMATTING RULES (strict):
-- Keep responses short and scannable — 3-5 lines max unless the question needs detail.
-- Use plain text ONLY. Never use markdown syntax like *, **, -, #, etc.
-- Use line breaks between sections instead of markdown lists.
-- For lists, write like: "Item one. Item two. Item three."
-- Never use raw markdown characters that would show as asterisks or hashes.
-- Be conversational, not robotic.
+FORMATTING RULES:
+- Be conversational and detailed. Write 4-8 sentences per response. Elaborate on projects, tech choices, and outcomes.
+- Use markdown links for all project names — format as [project name](url). Always link the project name when you mention it.
+- Use markdown bold (**) sparingly for emphasis only (role titles, key skills).
+- Use short paragraphs separated by blank lines. No bullet lists.
+- Never use raw markdown characters like # or * outside of links and bold.
+- Always include a friendly closing sentence inviting follow-up questions.
 
 Here is his complete profile:
 
@@ -74,8 +74,8 @@ export async function POST(request: Request) {
           { role: 'system', content: SYSTEM_PROMPT },
           ...messages,
         ],
-        temperature: 0.7,
-        max_tokens: 600,
+        temperature: 0.8,
+        max_tokens: 800,
       }),
     });
 

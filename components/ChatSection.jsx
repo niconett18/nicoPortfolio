@@ -130,7 +130,17 @@ export default function ChatSection() {
                   {msg.role === 'assistant' ? <Bot size={15} /> : <User size={15} />}
                 </span>
                 <div className="chat-msg-bubble">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  <ReactMarkdown
+                    components={{
+                      a: ({ href, children }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer">
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
                 </div>
               </div>
             ))}
