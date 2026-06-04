@@ -9,28 +9,41 @@ import { fadeUp, staggerContainer } from '../../../lib/animations';
 const PAGE_WIDTH = 1440;
 const PAGE_HEIGHT = 1200;
 
-function ScaledPreview({ url, title }: { url: string; title: string }) {
+function GridThumbnail({ url, title }: { url: string; title: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const imgSrc = `https://image.thum.io/get/width/1440/${url}`;
+
+  return (
+    <div style={{ width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-elevated)' }}>
+      <img
+        src={imgSrc}
+        alt={title}
+        onLoad={() => setLoaded(true)}
+        style={{
+          width: '100%',
+          display: 'block',
+          opacity: loaded ? 1 : 0,
+          transition: 'opacity 0.4s ease',
+        }}
+      />
+      {!loaded && <div className="project-card-iframe-loading" />}
+    </div>
+  );
+}
+
+function DrawerPreview({ url, title }: { url: string; title: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
-  const [visible, setVisible] = useState(false);
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
-    const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect(); } },
-      { rootMargin: '200px' }
-    );
-    io.observe(el);
-
     const updateScale = () => setScale(el.clientWidth / PAGE_WIDTH);
     updateScale();
     const ro = new ResizeObserver(updateScale);
     ro.observe(el);
-
-    return () => { io.disconnect(); ro.disconnect(); };
+    return () => ro.disconnect();
   }, []);
 
   return (
@@ -44,32 +57,30 @@ function ScaledPreview({ url, title }: { url: string; title: string }) {
         background: 'var(--bg-elevated)',
       }}
     >
-      {visible && (
-        <div
+      <div
+        style={{
+          width: PAGE_WIDTH,
+          height: PAGE_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        <iframe
+          src={url}
+          title={title}
+          onLoad={() => setLoaded(true)}
           style={{
-            width: PAGE_WIDTH,
-            height: PAGE_HEIGHT,
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            position: 'absolute',
-            top: 0,
-            left: 0,
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            pointerEvents: 'none',
           }}
-        >
-          <iframe
-            src={url}
-            title={title}
-            onLoad={() => setLoaded(true)}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              pointerEvents: 'none',
-            }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          />
-        </div>
-      )}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+      </div>
       {!loaded && <div className="project-card-iframe-loading" />}
     </div>
   );
@@ -132,7 +143,7 @@ export default function ProjectsPage() {
               className="project-card"
             >
               <div className="project-card-image">
-                <ScaledPreview url={project.url} title={project.imageAlt} />
+                <GridThumbnail url={project.url} title={project.imageAlt} />
               </div>
               <div className="project-card-body">
                 <p className="project-card-role">{project.role}</p>
@@ -173,7 +184,7 @@ export default function ProjectsPage() {
             >
               <div className="project-drawer-handle" />
               <div className="project-drawer-image">
-                <ScaledPreview url={selectedProject.url} title={selectedProject.imageAlt} />
+                <DrawerPreview url={selectedProject.url} title={selectedProject.imageAlt} />
               </div>
               <div className="project-drawer-body">
                 <button
