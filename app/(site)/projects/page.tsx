@@ -11,16 +11,26 @@ const PAGE_HEIGHT = 1200;
 
 function ScaledPreview({ url, title }: { url: string; title: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect(); } },
+      { rootMargin: '200px' }
+    );
+    io.observe(el);
+
     const updateScale = () => setScale(el.clientWidth / PAGE_WIDTH);
     updateScale();
-    const observer = new ResizeObserver(updateScale);
-    observer.observe(el);
-    return () => observer.disconnect();
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(el);
+
+    return () => { io.disconnect(); ro.disconnect(); };
   }, []);
 
   return (
@@ -31,32 +41,36 @@ function ScaledPreview({ url, title }: { url: string; title: string }) {
         height: PAGE_HEIGHT * scale,
         overflow: 'hidden',
         position: 'relative',
+        background: 'var(--bg-elevated)',
       }}
     >
-      <div
-        style={{
-          width: PAGE_WIDTH,
-          height: PAGE_HEIGHT,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-        }}
-      >
-        <iframe
-          src={url}
-          title={title}
+      {visible && (
+        <div
           style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            pointerEvents: 'none',
+            width: PAGE_WIDTH,
+            height: PAGE_HEIGHT,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
           }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-        />
-        <div className="project-card-iframe-loading" />
-      </div>
+        >
+          <iframe
+            src={url}
+            title={title}
+            onLoad={() => setLoaded(true)}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              pointerEvents: 'none',
+            }}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
+      )}
+      {!loaded && <div className="project-card-iframe-loading" />}
     </div>
   );
 }
