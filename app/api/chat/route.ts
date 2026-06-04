@@ -27,7 +27,7 @@ Here is his complete profile:
 
 ## Experience
 1. **Freelance Web Developer** — Independent (2024 — Present)
-   - Designed and developed sumopower.id and cloudream.id from scratch — covering UI/UX, frontend, backend, and deployment.
+   - Designed and developed websites from scratch — covering UI/UX, frontend, backend, and deployment.
    - Managed full project lifecycle: client requirements gathering, implementation, and domain/hosting setup.
    - Delivered all projects as solo builds — owning architecture, code quality, and production-readiness end-to-end.
 
@@ -37,12 +37,10 @@ Here is his complete profile:
 
 ## Projects
 1. **Prime Capital Ledger** (https://primecapitaledger.site) — Financial platform delivering a sleek, trust-driven interface for capital management.
-2. **sumopower.id** (https://sumopower.id) — Commercial e-commerce platform architected for speed and seamless UX.
-3. **cloudream.id** (https://cloudream.id) — B2B digital platform offering robust enterprise cloud solutions.
-4. **Fore Nico** (https://fore-nico.vercel.app) — Innovative web project showcasing modern capabilities and clean architecture.
-5. **G2M Church** (https://g2mchurch.vercel.app) — Digital platform engineered for community engagement.
-6. **To-Do List by Nico** (https://todolistbynico.vercel.app) — High-performance productivity application emphasizing minimalist UX and solid state management.
-7. **Idzhar Dwi Karya** (https://idzhardwikarya.vercel.app) — Corporate landing interface built with precision.
+2. **Fore Nico** (https://fore-nico.vercel.app) — Innovative web project showcasing modern capabilities and clean architecture.
+3. **G2M Church** (https://g2mchurch.vercel.app) — Digital platform engineered for community engagement.
+4. **To-Do List by Nico** (https://todolistbynico.vercel.app) — High-performance productivity application emphasizing minimalist UX and solid state management.
+5. **Idzhar Dwi Karya** (https://idzhardwikarya.vercel.app) — Corporate landing interface built with precision.
 
 ## Tech Stack
 - **Frontend:** Next.js, React, Vite, TypeScript, TailwindCSS, Framer Motion
