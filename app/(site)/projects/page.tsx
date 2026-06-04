@@ -9,23 +9,76 @@ import { fadeUp, staggerContainer } from '../../../lib/animations';
 const PAGE_WIDTH = 1440;
 const PAGE_HEIGHT = 1200;
 
-function GridThumbnail({ url, title }: { url: string; title: string }) {
+function GridPreview({ url, title, isMobile }: { url: string; title: string; isMobile: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
-  const imgSrc = `https://image.thum.io/get/width/1440/${url}`;
+  const [visible, setVisible] = useState(false);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect(); } },
+      { rootMargin: '400px' }
+    );
+    io.observe(el);
+    const updateScale = () => setScale(el.clientWidth / PAGE_WIDTH);
+    updateScale();
+    const ro = new ResizeObserver(updateScale);
+    ro.observe(el);
+    return () => { io.disconnect(); ro.disconnect(); };
+  }, []);
+
+  if (!visible) {
+    return (
+      <div ref={containerRef} style={{ width: '100%', aspectRatio: '4/3', background: 'var(--bg-elevated)' }} />
+    );
+  }
+
+  if (isMobile) {
+    const isCloudream = url.includes('cloudream.id');
+    if (isCloudream) {
+      return (
+        <div
+          ref={containerRef}
+          style={{
+            width: '100%', aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', color: '#94a3b8',
+            fontFamily: 'var(--font-text)', fontSize: 14, textAlign: 'center', padding: 16,
+          }}
+        >
+          Preview unavailable
+        </div>
+      );
+    }
+    return (
+      <div ref={containerRef} style={{ width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-elevated)' }}>
+        <img
+          src={`https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=1440`}
+          alt={title}
+          onLoad={() => setLoaded(true)}
+          style={{ width: '100%', display: 'block', opacity: loaded ? 1 : 0, transition: 'opacity 0.4s ease' }}
+        />
+        {!loaded && <div className="project-card-iframe-loading" />}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-elevated)' }}>
-      <img
-        src={imgSrc}
-        alt={title}
-        onLoad={() => setLoaded(true)}
-        style={{
-          width: '100%',
-          display: 'block',
-          opacity: loaded ? 1 : 0,
-          transition: 'opacity 0.4s ease',
-        }}
-      />
+    <div
+      ref={containerRef}
+      style={{ width: '100%', height: PAGE_HEIGHT * scale, overflow: 'hidden', position: 'relative', background: 'var(--bg-elevated)' }}
+    >
+      <div style={{ width: PAGE_WIDTH, height: PAGE_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
+        <iframe
+          src={url}
+          title={title}
+          onLoad={() => setLoaded(true)}
+          style={{ width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+      </div>
       {!loaded && <div className="project-card-iframe-loading" />}
     </div>
   );
@@ -143,7 +196,7 @@ export default function ProjectsPage() {
               className="project-card"
             >
               <div className="project-card-image">
-                <GridThumbnail url={project.url} title={project.imageAlt} />
+                <GridPreview url={project.url} title={project.imageAlt} isMobile={isMobile} />
               </div>
               <div className="project-card-body">
                 <p className="project-card-role">{project.role}</p>
