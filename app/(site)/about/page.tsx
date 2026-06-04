@@ -111,7 +111,7 @@ export default function AboutPage() {
           className="page-header-block"
         >
           <motion.p variants={fadeUp} className="page-eyebrow">
-            02 / About
+             About
           </motion.p>
           <motion.h1 variants={fadeUp} className="page-heading page-heading--large">
             About <span className="text-gradient serif-accent">me.</span>

@@ -41,7 +41,7 @@ export default function ProjectsPage() {
           className="page-header-block"
         >
           <motion.p variants={fadeUp} className="page-eyebrow">
-            03 / Projects
+             Projects
           </motion.p>
           <motion.h1 variants={fadeUp} className="page-heading">
             Selected work

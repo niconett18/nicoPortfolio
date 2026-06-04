@@ -14,7 +14,7 @@ export default function ContactPage() {
         className="page-header-block"
       >
         <motion.p variants={fadeUp} className="page-eyebrow">
-          04 / Contact
+           Contact
         </motion.p>
         <motion.h1 variants={fadeUp} className="page-heading page-heading--large">
           Let&apos;s build<br />
