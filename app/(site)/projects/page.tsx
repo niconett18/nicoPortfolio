@@ -1,11 +1,65 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, X, ExternalLink } from 'lucide-react';
 import { projects, type Project } from '../../../lib/projects';
 import { fadeUp, staggerContainer } from '../../../lib/animations';
+
+const PAGE_WIDTH = 1440;
+const PAGE_HEIGHT = 1200;
+
+function ScaledPreview({ url, title }: { url: string; title: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const updateScale = () => setScale(el.clientWidth / PAGE_WIDTH);
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: '100%',
+        height: PAGE_HEIGHT * scale,
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      <div
+        style={{
+          width: PAGE_WIDTH,
+          height: PAGE_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        <iframe
+          src={url}
+          title={title}
+          style={{
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            pointerEvents: 'none',
+          }}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+        <div className="project-card-iframe-loading" />
+      </div>
+    </div>
+  );
+}
 
 export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -64,14 +118,7 @@ export default function ProjectsPage() {
               className="project-card"
             >
               <div className="project-card-image">
-                <Image
-                  src={project.image}
-                  alt={project.imageAlt}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-                <div className="project-card-overlay" />
+                <ScaledPreview url={project.url} title={project.imageAlt} />
               </div>
               <div className="project-card-body">
                 <p className="project-card-role">{project.role}</p>
@@ -112,14 +159,7 @@ export default function ProjectsPage() {
             >
               <div className="project-drawer-handle" />
               <div className="project-drawer-image">
-                <Image
-                  src={selectedProject.image}
-                  alt={selectedProject.imageAlt}
-                  fill
-                  sizes="(max-width: 767px) 100vw, 560px"
-                  className="object-cover"
-                  priority
-                />
+                <ScaledPreview url={selectedProject.url} title={selectedProject.imageAlt} />
               </div>
               <div className="project-drawer-body">
                 <button
