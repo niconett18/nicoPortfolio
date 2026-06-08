@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Briefcase, Folder, GraduationCap, Wrench } from 'lucide-react';
+import MagneticButton from '../../../components/MagneticButton';
 import {
   SiNextdotjs,
   SiReact,
@@ -22,7 +23,7 @@ import {
   SiPython
 } from 'react-icons/si';
 import { FaJava } from 'react-icons/fa';
-import { fadeUp, staggerContainer } from '../../../lib/animations';
+import { fadeUp, staggerContainer, popIn } from '../../../lib/animations';
 
 const education = {
   degree: 'B.Eng. in Computer Engineering',
@@ -129,7 +130,7 @@ export default function AboutPage() {
           animate="visible"
           className="about-cards"
         >
-          <motion.article variants={fadeUp} className="about-card">
+          <motion.article variants={popIn} whileHover={{ y: -6 }} className="about-card">
             <span className="about-card-index">01</span>
             <h3>Focus</h3>
             <p>
@@ -137,13 +138,13 @@ export default function AboutPage() {
               interfaces.
             </p>
           </motion.article>
-          <motion.article variants={fadeUp} className="about-card">
+          <motion.article variants={popIn} whileHover={{ y: -6 }} className="about-card">
             <span className="about-card-index">02</span>
             <h3>Education</h3>
             <p>Computer Engineering</p>
             <p className="about-card-meta">Universitas Indonesia &middot; expected 2028</p>
           </motion.article>
-          <motion.article variants={fadeUp} className="about-card">
+          <motion.article variants={popIn} whileHover={{ y: -6 }} className="about-card">
             <span className="about-card-index">03</span>
             <h3>Currently</h3>
             <p>Shipping freelance web work and exploring AI-assisted developer tooling.</p>
@@ -200,10 +201,10 @@ export default function AboutPage() {
             A curated set of solo-built platforms — Prime Capital Ledger, sumopower.id,
             cloudream.id, and more — spanning fintech, e-commerce, and B2B.
           </p>
-          <a href="/projects" className="page-btn page-btn--ghost">
+          <MagneticButton href="/projects" className="page-btn page-btn--ghost">
             View projects
             <ArrowUpRight size={15} strokeWidth={2} />
-          </a>
+          </MagneticButton>
         </motion.div>
       </CVSection>
 

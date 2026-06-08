@@ -2,9 +2,11 @@
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { ArrowUpRight } from 'lucide-react';
 import { fadeUp, staggerContainer, lineReveal } from '../../lib/animations';
 import portraitSrc from '../../assets/portrait.png';
 import ChatSection from '../../components/ChatSection';
+import MagneticButton from '../../components/MagneticButton';
 
 export default function HomePage() {
   return (
@@ -35,12 +37,14 @@ export default function HomePage() {
               high-performance web applications with precision engineering and modern tooling.
             </motion.p>
             <motion.div variants={fadeUp} className="page-hero-actions">
-              <a href="/projects" className="page-btn page-btn--primary">
+              <MagneticButton href="/projects" className="page-btn page-btn--primary">
                 View projects
-              </a>
-              <a href="/contact" className="page-btn page-btn--ghost">
+                <ArrowUpRight size={16} strokeWidth={2} />
+              </MagneticButton>
+              <MagneticButton href="/contact" className="page-btn page-btn--ghost page-btn--dot">
+                <span className="page-btn-dot" aria-hidden="true" />
                 Get in touch
-              </a>
+              </MagneticButton>
             </motion.div>
           </motion.div>
 

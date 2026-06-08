@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, X, ExternalLink } from 'lucide-react';
 import { projects, type Project } from '../../../lib/projects';
-import { fadeUp, staggerContainer } from '../../../lib/animations';
+import { fadeUp, staggerContainer, popIn, modalContentStagger } from '../../../lib/animations';
+import MagneticButton from '../../../components/MagneticButton';
 
 const PAGE_WIDTH = 1440;
 const PAGE_HEIGHT = 1200;
@@ -184,14 +185,20 @@ export default function ProjectsPage() {
           </motion.p>
         </motion.div>
 
-        <div className="projects-grid">
+        <motion.div
+          className="projects-grid"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
           {projects.map((project) => (
             <motion.button
               key={project.id}
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-40px' }}
+              variants={popIn}
+              whileHover={{ y: -8 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               onClick={() => setSelectedProject(project)}
               className="project-card"
             >
@@ -210,7 +217,7 @@ export default function ProjectsPage() {
               </div>
             </motion.button>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       <AnimatePresence>
@@ -239,7 +246,12 @@ export default function ProjectsPage() {
               <div className="project-drawer-image">
                 <DrawerPreview url={selectedProject.url} title={selectedProject.imageAlt} />
               </div>
-              <div className="project-drawer-body">
+              <motion.div
+                className="project-drawer-body"
+                variants={modalContentStagger}
+                initial="hidden"
+                animate="visible"
+              >
                 <button
                   type="button"
                   className="project-drawer-close"
@@ -248,19 +260,21 @@ export default function ProjectsPage() {
                 >
                   <X size={18} />
                 </button>
-                <p className="project-drawer-role">{selectedProject.role}</p>
-                <h3 className="project-drawer-title">{selectedProject.name}</h3>
-                <p className="project-drawer-desc">{selectedProject.desc}</p>
-                <a
-                  href={selectedProject.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="page-btn page-btn--primary"
-                >
-                  View live site
-                  <ExternalLink size={16} />
-                </a>
-              </div>
+                <motion.p variants={fadeUp} className="project-drawer-role">{selectedProject.role}</motion.p>
+                <motion.h3 variants={fadeUp} className="project-drawer-title">{selectedProject.name}</motion.h3>
+                <motion.p variants={fadeUp} className="project-drawer-desc">{selectedProject.desc}</motion.p>
+                <motion.div variants={fadeUp}>
+                  <MagneticButton
+                    href={selectedProject.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="page-btn page-btn--primary"
+                  >
+                    View live site
+                    <ExternalLink size={16} />
+                  </MagneticButton>
+                </motion.div>
+              </motion.div>
             </motion.div>
           </React.Fragment>
         )}

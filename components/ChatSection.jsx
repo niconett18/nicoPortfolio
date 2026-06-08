@@ -53,16 +53,49 @@ export default function ChatSection() {
         }),
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.message) {
-        setMessages((prev) => [...prev, data.message]);
-      } else {
+      if (!res.ok || !res.body) {
         setMessages((prev) => [
           ...prev,
           {
             role: 'assistant',
             content: "Sorry, I couldn't reach the AI service right now. Try again later.",
+          },
+        ]);
+        return;
+      }
+
+      // Stream tokens in as they arrive. Append an empty assistant bubble,
+      // then mutate its content on every chunk so text appears progressively.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = '';
+      let started = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+
+        if (!started) {
+          started = true;
+          setLoading(false); // hide typing dots once first token lands
+          setMessages((prev) => [...prev, { role: 'assistant', content: acc }]);
+        } else {
+          setMessages((prev) => {
+            const next = [...prev];
+            next[next.length - 1] = { role: 'assistant', content: acc };
+            return next;
+          });
+        }
+      }
+
+      // Edge case: stream closed with no tokens at all.
+      if (!started) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: "Sorry, I couldn't generate a response. Please try again.",
           },
         ]);
       }
@@ -71,7 +104,7 @@ export default function ChatSection() {
         ...prev,
         {
           role: 'assistant',
-          content: "Sorry, something went wrong. Please try again.",
+          content: 'Sorry, something went wrong. Please try again.',
         },
       ]);
     } finally {

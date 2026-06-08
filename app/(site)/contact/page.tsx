@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Mail } from 'lucide-react';
-import { fadeUp, staggerContainer } from '../../../lib/animations';
+import { fadeUp, staggerContainer, popIn } from '../../../lib/animations';
 
 export default function ContactPage() {
   return (
@@ -27,7 +27,10 @@ export default function ContactPage() {
 
         <div className="contact-grid">
           <motion.a
-            variants={fadeUp}
+            variants={popIn}
+            whileHover={{ y: -4, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             href="mailto:nicholasedmund18@gmail.com"
             className="contact-card"
           >

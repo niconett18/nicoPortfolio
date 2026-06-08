@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp helper scripts (model tests, cleanup)
+_*.py
+_*.sh
+_zt/

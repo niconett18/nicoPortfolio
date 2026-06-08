@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+export const maxDuration = 30;
+
 const API_KEY = process.env.OPENCODE_ZEN_API_KEY || '';
 const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://opencode.ai/zen/v1';
+// Fast, non-reasoning chat model — fills `content` directly (no empty-content reasoning bug).
+const MODEL = process.env.OPENCODE_ZEN_MODEL || 'mimo-v2.5-free';
 
 const SYSTEM_PROMPT = `You are a friendly portfolio assistant for Nicholas Edmund Tanaka. Answer questions about his background, experience, projects, skills, and contact info.
 
@@ -63,39 +68,102 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
-    const res = await fetch(`${BASE_URL}/chat/completions`, {
+    if (!API_KEY) {
+      return NextResponse.json(
+        { error: 'Server is missing OPENCODE_ZEN_API_KEY' },
+        { status: 500 }
+      );
+    }
+
+    const upstream = await fetch(`${BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-v4-flash-free',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          ...messages,
-        ],
+        model: MODEL,
+        stream: true,
+        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
         temperature: 0.8,
         max_tokens: 800,
       }),
     });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('AI API error:', res.status, errorText);
+    if (!upstream.ok || !upstream.body) {
+      const errorText = await upstream.text().catch(() => '');
+      console.error('AI API error:', upstream.status, errorText);
       return NextResponse.json(
         { error: 'AI service temporarily unavailable' },
         { status: 502 }
       );
     }
 
-    const data = await res.json();
-    return NextResponse.json({ message: data.choices[0].message });
+    // Transform the upstream OpenAI SSE stream into a plain text token stream.
+    // Falls back to reasoning_content if a model emits no visible content
+    // (defensive: keeps the chat from going blank on reasoning models).
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = upstream.body!.getReader();
+        let buffer = '';
+        let emittedContent = false;
+        let reasoningFallback = '';
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data:')) continue;
+              const payload = trimmed.slice(5).trim();
+              if (payload === '[DONE]') continue;
+
+              try {
+                const json = JSON.parse(payload);
+                const delta = json.choices?.[0]?.delta || {};
+                if (typeof delta.content === 'string' && delta.content) {
+                  emittedContent = true;
+                  controller.enqueue(encoder.encode(delta.content));
+                } else if (typeof delta.reasoning_content === 'string') {
+                  reasoningFallback += delta.reasoning_content;
+                }
+              } catch {
+                // ignore non-JSON keepalive lines
+              }
+            }
+          }
+
+          // If the model produced ONLY reasoning (empty content), surface it
+          // so the user never sees a blank bubble.
+          if (!emittedContent && reasoningFallback.trim()) {
+            controller.enqueue(encoder.encode(reasoningFallback.trim()));
+          }
+        } catch (err) {
+          console.error('Stream relay error:', err);
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+      },
+    });
   } catch (err) {
     console.error('Chat API error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
