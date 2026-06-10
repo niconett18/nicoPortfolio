@@ -68,8 +68,8 @@
     letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
     min-width: 320px;
+    /* remove overflow-x: hidden from body as lenis handles this wrapper */
   }
 
   ::selection {
@@ -115,6 +115,11 @@
 
 html.modal-open, html.modal-open body {
   overflow: hidden !important;
+}
+
+/* Fix Lenis container wrapping issue */
+.site-shell, .site-content {
+  overflow: clip; /* Prefer clip over hidden to allow scrolling to bubble correctly without hiding scrollbars prematurely if Lenis handles it */
 }
 
 /* ============================================================

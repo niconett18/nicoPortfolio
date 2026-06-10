@@ -14,14 +14,16 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     const lenis = new Lenis({
       duration: 1.1,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      // Stop Lenis from scrolling when body is locked
-      syncTouch: true,
-      touchMultiplier: 2,
+      // Let Lenis manage the overflow classes properly
+      smoothWheel: true,
     });
 
     let rafId = requestAnimationFrame(function loop(time: number) {
-      // Pause lenis if document is locked (modal open)
-      if (!document.documentElement.classList.contains("modal-open")) {
+      if (document.documentElement.classList.contains("modal-open")) {
+        // Pause Lenis without stopping the RAF loop entirely
+        lenis.stop();
+      } else {
+        lenis.start();
         lenis.raf(time);
       }
       rafId = requestAnimationFrame(loop);
