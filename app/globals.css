@@ -113,6 +113,10 @@
   }
 }
 
+html.modal-open, html.modal-open body {
+  overflow: hidden !important;
+}
+
 /* ============================================================
    02 / TEXTURE — film grain (SVG noise, fixed, ~3%)
    ============================================================ */

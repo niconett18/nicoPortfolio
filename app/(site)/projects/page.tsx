@@ -202,9 +202,19 @@ export default function ProjectsPage() {
   const clientCount = projects.filter((p) => p.type === "Client").length;
 
   useEffect(() => {
-    document.body.style.overflow = selectedProject ? "hidden" : "";
+    // When a project modal is open, prevent scrolling on the body
+    if (selectedProject) {
+      document.body.style.overflow = "hidden";
+      // To fix Lenis scroll blocking, we also add a class that might be used by Lenis or the layout
+      document.documentElement.classList.add("modal-open");
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.classList.remove("modal-open");
+    }
+
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.classList.remove("modal-open");
     };
   }, [selectedProject]);
 
