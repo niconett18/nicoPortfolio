@@ -119,7 +119,7 @@ html.modal-open, html.modal-open body {
 
 /* Fix Lenis container wrapping issue */
 .site-shell, .site-content {
-  overflow: clip; /* Prefer clip over hidden to allow scrolling to bubble correctly without hiding scrollbars prematurely if Lenis handles it */
+  /* removed overflow: clip; to allow default scrolling */
 }
 
 /* ============================================================
