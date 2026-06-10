@@ -1,91 +1,73 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUpRight, X, ExternalLink } from 'lucide-react';
-import { projects, type Project } from '../../../lib/projects';
-import { fadeUp, staggerContainer, popIn, modalContentStagger } from '../../../lib/animations';
-import MagneticButton from '../../../components/MagneticButton';
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpRight, ExternalLink, X } from "lucide-react";
+import { ContainerScroll } from "../../../components/ui/container-scroll-animation";
+import MagneticButton from "../../../components/motion/MagneticButton";
+import {
+  EASE,
+  modalContentStagger,
+  modalItem,
+  modalPanel,
+  popIn,
+  staggerContainer,
+} from "../../../lib/animations";
+import { projects, type Project } from "../../../lib/projects";
 
 const PAGE_WIDTH = 1440;
 const PAGE_HEIGHT = 1200;
 
-function GridPreview({ url, title, isMobile }: { url: string; title: string; isMobile: boolean }) {
+function domainOf(url: string): string {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+function typeBadgeClass(type: Project["type"]): string {
+  return type === "Client" ? "type-badge type-badge--client" : "type-badge";
+}
+
+/* Lazy-loaded preview: static screenshot image for fast project cards. */
+function GridPreview({ url, title }: { url: string; title: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect(); } },
-      { rootMargin: '400px' }
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "400px" }
     );
     io.observe(el);
-    const updateScale = () => setScale(el.clientWidth / PAGE_WIDTH);
-    updateScale();
-    const ro = new ResizeObserver(updateScale);
-    ro.observe(el);
-    return () => { io.disconnect(); ro.disconnect(); };
+    return () => io.disconnect();
   }, []);
 
   if (!visible) {
-    return (
-      <div ref={containerRef} style={{ width: '100%', aspectRatio: '4/3', background: 'var(--bg-elevated)' }} />
-    );
-  }
-
-  if (isMobile) {
-    const isCloudream = url.includes('cloudream.id');
-    if (isCloudream) {
-      return (
-        <div
-          ref={containerRef}
-          style={{
-            width: '100%', aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', color: '#94a3b8',
-            fontFamily: 'var(--font-text)', fontSize: 14, textAlign: 'center', padding: 16,
-          }}
-        >
-          Preview unavailable
-        </div>
-      );
-    }
-    return (
-      <div ref={containerRef} style={{ width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--bg-elevated)' }}>
-        <img
-          src={`https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=1440`}
-          alt={title}
-          onLoad={() => setLoaded(true)}
-          style={{ width: '100%', display: 'block', opacity: loaded ? 1 : 0, transition: 'opacity 0.4s ease' }}
-        />
-        {!loaded && <div className="project-card-iframe-loading" />}
-      </div>
-    );
+    return <div ref={containerRef} className="project-shot project-shot--placeholder" />;
   }
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: PAGE_HEIGHT * scale, overflow: 'hidden', position: 'relative', background: 'var(--bg-elevated)' }}
-    >
-      <div style={{ width: PAGE_WIDTH, height: PAGE_HEIGHT, transform: `scale(${scale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
-        <iframe
-          src={url}
-          title={title}
-          onLoad={() => setLoaded(true)}
-          style={{ width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-        />
-      </div>
+    <div ref={containerRef} className="project-shot">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=1440`}
+        alt={title}
+        onLoad={() => setLoaded(true)}
+        className="project-shot-img"
+      />
       {!loaded && <div className="project-card-iframe-loading" />}
     </div>
   );
 }
 
-function DrawerPreview({ url, title }: { url: string; title: string }) {
+/* Scaled live-site iframe inside the modal only. */
+function ModalPreview({ url, title }: { url: string; title: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
   const [scale, setScale] = useState(1);
@@ -104,11 +86,11 @@ function DrawerPreview({ url, title }: { url: string; title: string }) {
     <div
       ref={containerRef}
       style={{
-        width: '100%',
+        width: "100%",
         height: PAGE_HEIGHT * scale,
-        overflow: 'hidden',
-        position: 'relative',
-        background: 'var(--bg-elevated)',
+        overflow: "hidden",
+        position: "relative",
+        background: "var(--bg)",
       }}
     >
       <div
@@ -116,8 +98,8 @@ function DrawerPreview({ url, title }: { url: string; title: string }) {
           width: PAGE_WIDTH,
           height: PAGE_HEIGHT,
           transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          position: 'absolute',
+          transformOrigin: "top left",
+          position: "absolute",
           top: 0,
           left: 0,
         }}
@@ -126,12 +108,7 @@ function DrawerPreview({ url, title }: { url: string; title: string }) {
           src={url}
           title={title}
           onLoad={() => setLoaded(true)}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            pointerEvents: 'none',
-          }}
+          style={{ width: "100%", height: "100%", border: "none", pointerEvents: "none" }}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         />
       </div>
@@ -140,145 +117,277 @@ function DrawerPreview({ url, title }: { url: string; title: string }) {
   );
 }
 
+function ProjectContainer({
+  project,
+  index,
+  compact = false,
+  onOpen,
+}: {
+  project: Project;
+  index: number;
+  compact?: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <motion.article
+      className={compact ? "project-scroll-item project-scroll-item--compact" : "project-scroll-item"}
+      variants={compact ? popIn : undefined}
+      initial={compact ? undefined : { opacity: 0, y: 32 }}
+      whileInView={compact ? undefined : { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } }}
+      viewport={{ once: true, margin: "-60px" }}
+    >
+      <ContainerScroll
+        className={compact ? "project-scroll-container project-scroll-container--compact" : "project-scroll-container"}
+        headerClassName="project-scroll-header"
+        cardClassName="project-scroll-card"
+        contentClassName="project-scroll-card-content"
+        titleComponent={
+          <div className="project-scroll-info">
+            <div className="project-scroll-kicker">
+              <span className="project-scroll-index">{String(index + 1).padStart(2, "0")}</span>
+              <span className={typeBadgeClass(project.type)}>{project.type}</span>
+              <span className="mono-label">{project.year}</span>
+            </div>
+
+            <div className="project-scroll-title-row">
+              <h3 className={compact ? "project-card-heading" : "featured-title"}>{project.name}</h3>
+              <span className="project-card-icon" aria-hidden="true">
+                <ArrowUpRight size={compact ? 18 : 22} />
+              </span>
+            </div>
+
+            <p className={compact ? "project-card-desc" : "featured-desc"}>{project.desc}</p>
+
+            <ul className="chip-row" aria-label="Tech stack">
+              {project.stack.map((tech) => (
+                <li key={tech} className="chip">
+                  {tech}
+                </li>
+              ))}
+            </ul>
+
+            {!compact && (
+              <div className="featured-actions">
+                <MagneticButton type="button" className="btn btn--accent" onClick={onOpen}>
+                  View details
+                  <ArrowUpRight size={14} strokeWidth={2} />
+                </MagneticButton>
+                <MagneticButton href={project.url} target="_blank" rel="noopener noreferrer" className="btn">
+                  Live site
+                  <ExternalLink size={13} />
+                </MagneticButton>
+              </div>
+            )}
+          </div>
+        }
+      >
+        <button
+          type="button"
+          className="project-scroll-preview"
+          onClick={onOpen}
+          aria-label={`Open ${project.name} details`}
+        >
+          <GridPreview url={project.url} title={project.imageAlt} />
+          <span className="project-scroll-preview-label">View details</span>
+        </button>
+      </ContainerScroll>
+    </motion.article>
+  );
+}
+
 export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(max-width: 767px)').matches;
-  });
+  const clientCount = projects.filter((p) => p.type === "Client").length;
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
+    document.body.style.overflow = selectedProject ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedProject]);
 
   useEffect(() => {
-    if (selectedProject) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+    if (!selectedProject) return;
+    closeButtonRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedProject(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [selectedProject]);
 
   return (
-    <div className="page-stack">
-      <section className="page-section">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-          className="page-header-block"
+    <>
+      <section className="page-head page-section">
+        <motion.p
+          className="mono-label mono-label--accent"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.6, ease: EASE, delay: 0.4 } }}
         >
-          <motion.p variants={fadeUp} className="page-eyebrow">
-             Projects
-          </motion.p>
-          <motion.h1 variants={fadeUp} className="page-heading">
-            Selected work
-          </motion.h1>
-          <motion.p variants={fadeUp} className="page-intro">
-            A curated set of shipped products with measurable impact, prioritized for clarity and
-            speed across devices.
-          </motion.p>
-        </motion.div>
+          Selected Work
+        </motion.p>
+        <motion.h1
+          className="display-lg"
+          style={{ marginTop: "1rem" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay: 0.5 } }}
+        >
+          Projects<span className="text-accent">.</span>
+        </motion.h1>
+        <motion.p
+          className="lead"
+          style={{ marginTop: "1.5rem", maxWidth: "36rem" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.7, ease: EASE, delay: 0.7 } }}
+        >
+          Production work for real clients alongside self-initiated builds — every project
+          designed, developed, and deployed end to end.
+        </motion.p>
+        <motion.p
+          className="mono-label projects-head-meta"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.7, ease: EASE, delay: 0.85 } }}
+        >
+          {projects.length} projects · {clientCount} client builds · all shipped solo
+        </motion.p>
+      </section>
 
+      <section className="projects-block page-section">
+        <div className="projects-block-head">
+          <h2 className="mono-label mono-label--accent">All Projects</h2>
+        </div>
         <motion.div
           className="projects-grid"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: '-40px' }}
+          viewport={{ once: true, margin: "-40px" }}
         >
-          {projects.map((project) => (
-            <motion.button
+          {projects.map((project, i) => (
+            <ProjectContainer
               key={project.id}
-              variants={popIn}
-              whileHover={{ y: -8 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              onClick={() => setSelectedProject(project)}
-              className="project-card"
-            >
-              <div className="project-card-image">
-                <GridPreview url={project.url} title={project.imageAlt} isMobile={isMobile} />
-              </div>
-              <div className="project-card-body">
-                <p className="project-card-role">{project.role}</p>
-                <div className="project-card-title-row">
-                  <h3>{project.name}</h3>
-                  <span className="project-card-icon">
-                    <ArrowUpRight size={18} />
-                  </span>
-                </div>
-                <p className="project-card-desc">{project.desc}</p>
-              </div>
-            </motion.button>
+              project={project}
+              index={i}
+              compact
+              onOpen={() => setSelectedProject(project)}
+            />
           ))}
         </motion.div>
       </section>
 
       <AnimatePresence>
         {selectedProject && (
-          <React.Fragment key={selectedProject.id}>
+          <motion.div
+            key={selectedProject.id}
+            className="project-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.25, ease: "easeOut" } }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            onClick={() => setSelectedProject(null)}
+          >
             <motion.div
-              className="project-drawer-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.22 }}
-              onClick={() => setSelectedProject(null)}
-            />
-            <motion.div
-              className="project-drawer"
-              initial={isMobile ? { y: '100%' } : { x: '100%' }}
-              animate={isMobile ? { y: 0 } : { x: 0 }}
-              exit={isMobile ? { y: '100%' } : { x: '100%' }}
-              transition={
-                isMobile
-                  ? { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
-                  : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
-              }
+              className="project-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="project-modal-title"
+              variants={modalPanel}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="project-drawer-handle" />
-              <div className="project-drawer-image">
-                <DrawerPreview url={selectedProject.url} title={selectedProject.imageAlt} />
+              <button
+                ref={closeButtonRef}
+                type="button"
+                className="project-modal-close"
+                onClick={() => setSelectedProject(null)}
+                aria-label="Close"
+              >
+                <X size={16} />
+              </button>
+
+              <div className="project-modal-preview">
+                <div className="project-modal-chrome" aria-hidden="true">
+                  <span className="chrome-dots">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="chrome-url">{domainOf(selectedProject.url)}</span>
+                  <a
+                    href={selectedProject.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="chrome-open"
+                    tabIndex={-1}
+                  >
+                    <ExternalLink size={13} />
+                  </a>
+                </div>
+                <div className="project-modal-preview-scroll">
+                  <ModalPreview url={selectedProject.url} title={selectedProject.imageAlt} />
+                </div>
               </div>
+
               <motion.div
-                className="project-drawer-body"
+                className="project-modal-body"
                 variants={modalContentStagger}
                 initial="hidden"
                 animate="visible"
               >
-                <button
-                  type="button"
-                  className="project-drawer-close"
-                  onClick={() => setSelectedProject(null)}
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-                <motion.p variants={fadeUp} className="project-drawer-role">{selectedProject.role}</motion.p>
-                <motion.h3 variants={fadeUp} className="project-drawer-title">{selectedProject.name}</motion.h3>
-                <motion.p variants={fadeUp} className="project-drawer-desc">{selectedProject.desc}</motion.p>
-                <motion.div variants={fadeUp}>
+                <motion.div variants={modalItem} className="badge-row">
+                  <span className={typeBadgeClass(selectedProject.type)}>{selectedProject.type}</span>
+                  <span className="mono-label">{selectedProject.year}</span>
+                </motion.div>
+                <motion.h3 variants={modalItem} id="project-modal-title" className="project-modal-title">
+                  {selectedProject.name}
+                </motion.h3>
+                <motion.p variants={modalItem} className="mono-label mono-label--accent">
+                  {selectedProject.role}
+                </motion.p>
+                <motion.p variants={modalItem} className="project-modal-desc">
+                  {selectedProject.desc}
+                </motion.p>
+                <motion.div variants={modalItem} className="project-modal-section">
+                  <p className="mono-label project-modal-section-label">Highlights</p>
+                  <ul className="modal-highlights">
+                    {selectedProject.highlights.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                </motion.div>
+                <motion.div variants={modalItem} className="project-modal-section">
+                  <p className="mono-label project-modal-section-label">Stack</p>
+                  <ul className="chip-row" aria-label="Tech stack">
+                    {selectedProject.stack.map((tech) => (
+                      <li key={tech} className="chip">
+                        {tech}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+                <motion.div variants={modalItem} className="project-modal-actions">
                   <MagneticButton
                     href={selectedProject.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="page-btn page-btn--primary"
+                    className="btn btn--accent"
                   >
                     View live site
-                    <ExternalLink size={16} />
+                    <ExternalLink size={14} />
+                  </MagneticButton>
+                  <MagneticButton type="button" className="btn" onClick={() => setSelectedProject(null)}>
+                    Close
                   </MagneticButton>
                 </motion.div>
               </motion.div>
             </motion.div>
-          </React.Fragment>
+          </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

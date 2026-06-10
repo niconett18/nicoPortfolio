@@ -13,6 +13,23 @@ const SUGGESTIONS = [
   'How can I contact you?',
 ];
 
+// Reads a streaming response body, invoking onText with the accumulated text
+// on every chunk. Returns the full text ('' if the stream produced nothing).
+async function readStream(body, onText) {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let acc = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    acc += decoder.decode(value, { stream: true });
+    onText(acc);
+  }
+
+  return acc;
+}
+
 export default function ChatSection() {
   const [messages, setMessages] = useState([
     {
@@ -65,32 +82,24 @@ export default function ChatSection() {
       }
 
       // Stream tokens in as they arrive. Append an empty assistant bubble,
-      // then mutate its content on every chunk so text appears progressively.
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = '';
-      let started = false;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-
-        if (!started) {
-          started = true;
+      // then replace its content on every chunk so text appears progressively.
+      const startedRef = { current: false };
+      const full = await readStream(res.body, (text) => {
+        if (!startedRef.current) {
+          startedRef.current = true;
           setLoading(false); // hide typing dots once first token lands
-          setMessages((prev) => [...prev, { role: 'assistant', content: acc }]);
+          setMessages((prev) => [...prev, { role: 'assistant', content: text }]);
         } else {
           setMessages((prev) => {
             const next = [...prev];
-            next[next.length - 1] = { role: 'assistant', content: acc };
+            next[next.length - 1] = { role: 'assistant', content: text };
             return next;
           });
         }
-      }
+      });
 
       // Edge case: stream closed with no tokens at all.
-      if (!started) {
+      if (!full) {
         setMessages((prev) => [
           ...prev,
           {
@@ -99,7 +108,7 @@ export default function ChatSection() {
           },
         ]);
       }
-    } catch (_) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -126,17 +135,17 @@ export default function ChatSection() {
   };
 
   return (
-    <section className="page-section page-section--border">
+    <section className="chat-section page-section">
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
       >
-        <motion.p variants={fadeUp} className="page-eyebrow">
+        <motion.p variants={fadeUp} className="mono-label mono-label--accent">
           AI Assistant
         </motion.p>
-        <motion.h2 variants={fadeUp} className="page-subheading">
+        <motion.h2 variants={fadeUp} className="display-lg" style={{ marginTop: '0.85rem' }}>
           Ask anything
         </motion.h2>
 
