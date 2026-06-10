@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 
 /**
@@ -8,6 +8,8 @@ import Lenis from "lenis";
  * Disabled entirely under prefers-reduced-motion.
  */
 export default function LenisProvider({ children }: { children: React.ReactNode }) {
+  const lenisRef = useRef<Lenis | null>(null);
+
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -17,15 +19,10 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
       // Let Lenis manage the overflow classes properly
       smoothWheel: true,
     });
+    lenisRef.current = lenis;
 
     let rafId = requestAnimationFrame(function loop(time: number) {
-      if (document.documentElement.classList.contains("modal-open")) {
-        // Pause Lenis without stopping the RAF loop entirely
-        lenis.stop();
-      } else {
-        lenis.start();
-        lenis.raf(time);
-      }
+      lenis.raf(time);
       rafId = requestAnimationFrame(loop);
     });
 
@@ -33,6 +30,26 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
       cancelAnimationFrame(rafId);
       lenis.destroy();
     };
+  }, []);
+
+  useEffect(() => {
+    // Observe modal open class
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+          const isOpen = document.documentElement.classList.contains("modal-open");
+          if (isOpen) {
+             lenisRef.current?.stop();
+          } else {
+             lenisRef.current?.start();
+          }
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+    
+    return () => observer.disconnect();
   }, []);
 
   return <>{children}</>;

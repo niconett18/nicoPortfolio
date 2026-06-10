@@ -114,7 +114,7 @@
 }
 
 html.modal-open, html.modal-open body {
-  overflow: hidden !important;
+  overflow: hidden;
 }
 
 /* Fix Lenis container wrapping issue */
