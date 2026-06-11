@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -85,7 +86,10 @@ export default function RootLayout({
       className={`h-full antialiased ${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning style={{ position: "relative" }}>{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning style={{ position: "relative" }}>
+        {children}
+        <GoogleAnalytics gaId="G-HWG4GJDC39" />
+      </body>
     </html>
   );
 }
