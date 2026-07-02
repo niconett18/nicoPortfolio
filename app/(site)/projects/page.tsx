@@ -128,68 +128,95 @@ function ProjectContainer({
   compact?: boolean;
   onOpen: () => void;
 }) {
+  const titleContent = (
+    <div className="project-scroll-info">
+      <div className="project-scroll-kicker">
+        <span className="project-scroll-index">{String(index + 1).padStart(2, "0")}</span>
+        <span className={typeBadgeClass(project.type)}>{project.type}</span>
+        <span className="mono-label">{project.year}</span>
+      </div>
+
+      <div className="project-scroll-title-row">
+        <h3 className={compact ? "project-card-heading" : "featured-title"}>{project.name}</h3>
+        <span className="project-card-icon" aria-hidden="true">
+          <ArrowUpRight size={compact ? 18 : 22} />
+        </span>
+      </div>
+
+      <p className={compact ? "project-card-desc" : "featured-desc"}>{project.desc}</p>
+
+      <ul className="chip-row" aria-label="Tech stack">
+        {project.stack.map((tech) => (
+          <li key={tech} className="chip">
+            {tech}
+          </li>
+        ))}
+      </ul>
+
+      {!compact && (
+        <div className="featured-actions">
+          <MagneticButton type="button" className="btn btn--accent" onClick={onOpen}>
+            View details
+            <ArrowUpRight size={14} strokeWidth={2} />
+          </MagneticButton>
+          <MagneticButton href={project.url} target="_blank" rel="noopener noreferrer" className="btn">
+            Live site
+            <ExternalLink size={13} />
+          </MagneticButton>
+        </div>
+      )}
+    </div>
+  );
+
+  const previewContent = (
+    <button
+      type="button"
+      className="project-scroll-preview"
+      onClick={onOpen}
+      aria-label={`Open ${project.name} details`}
+    >
+      <GridPreview url={project.url} title={project.imageAlt} />
+      <span className="project-scroll-preview-label">View details</span>
+    </button>
+  );
+
+  if (compact) {
+    return (
+      <motion.article
+        className="project-scroll-item project-scroll-item--compact"
+        variants={popIn}
+      >
+        <div className="container-scroll-shell project-scroll-container--compact">
+          <div className="container-scroll-stage">
+            <div className="container-scroll-header project-scroll-header">
+              {titleContent}
+            </div>
+            <div className="container-scroll-card project-scroll-card">
+              <div className="container-scroll-content project-scroll-card-content">
+                {previewContent}
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.article>
+    );
+  }
+
   return (
     <motion.article
-      className={compact ? "project-scroll-item project-scroll-item--compact" : "project-scroll-item"}
-      variants={compact ? popIn : undefined}
-      initial={compact ? undefined : { opacity: 0, y: 32 }}
-      whileInView={compact ? undefined : { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } }}
+      className="project-scroll-item"
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } }}
       viewport={{ once: true, margin: "-60px" }}
     >
       <ContainerScroll
-        className={compact ? "project-scroll-container project-scroll-container--compact" : "project-scroll-container"}
+        className="project-scroll-container"
         headerClassName="project-scroll-header"
         cardClassName="project-scroll-card"
         contentClassName="project-scroll-card-content"
-        titleComponent={
-          <div className="project-scroll-info">
-            <div className="project-scroll-kicker">
-              <span className="project-scroll-index">{String(index + 1).padStart(2, "0")}</span>
-              <span className={typeBadgeClass(project.type)}>{project.type}</span>
-              <span className="mono-label">{project.year}</span>
-            </div>
-
-            <div className="project-scroll-title-row">
-              <h3 className={compact ? "project-card-heading" : "featured-title"}>{project.name}</h3>
-              <span className="project-card-icon" aria-hidden="true">
-                <ArrowUpRight size={compact ? 18 : 22} />
-              </span>
-            </div>
-
-            <p className={compact ? "project-card-desc" : "featured-desc"}>{project.desc}</p>
-
-            <ul className="chip-row" aria-label="Tech stack">
-              {project.stack.map((tech) => (
-                <li key={tech} className="chip">
-                  {tech}
-                </li>
-              ))}
-            </ul>
-
-            {!compact && (
-              <div className="featured-actions">
-                <MagneticButton type="button" className="btn btn--accent" onClick={onOpen}>
-                  View details
-                  <ArrowUpRight size={14} strokeWidth={2} />
-                </MagneticButton>
-                <MagneticButton href={project.url} target="_blank" rel="noopener noreferrer" className="btn">
-                  Live site
-                  <ExternalLink size={13} />
-                </MagneticButton>
-              </div>
-            )}
-          </div>
-        }
+        titleComponent={titleContent}
       >
-        <button
-          type="button"
-          className="project-scroll-preview"
-          onClick={onOpen}
-          aria-label={`Open ${project.name} details`}
-        >
-          <GridPreview url={project.url} title={project.imageAlt} />
-          <span className="project-scroll-preview-label">View details</span>
-        </button>
+        {previewContent}
       </ContainerScroll>
     </motion.article>
   );
@@ -202,18 +229,13 @@ export default function ProjectsPage() {
   const clientCount = projects.filter((p) => p.type === "Client").length;
 
   useEffect(() => {
-    // When a project modal is open, prevent scrolling on the body
     if (selectedProject) {
-      document.body.style.overflow = "hidden";
-      // To fix Lenis scroll blocking, we also add a class that might be used by Lenis or the layout
       document.documentElement.classList.add("modal-open");
     } else {
-      document.body.style.overflow = "";
       document.documentElement.classList.remove("modal-open");
     }
 
     return () => {
-      document.body.style.overflow = "";
       document.documentElement.classList.remove("modal-open");
     };
   }, [selectedProject]);

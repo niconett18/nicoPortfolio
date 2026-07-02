@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const API_KEY = process.env.OPENCODE_ZEN_API_KEY || '';
-const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://opencode.ai/zen/v1';
-// Fast, non-reasoning chat model — fills `content` directly (no empty-content reasoning bug).
-const MODEL = process.env.OPENCODE_ZEN_MODEL || 'mimo-v2.5-free';
+const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://api.deepseek.com/v1';
+const MODEL = process.env.OPENCODE_ZEN_MODEL || 'deepseek-chat';
 
 const SYSTEM_PROMPT = `You are a friendly portfolio assistant for Nicholas Edmund Tanaka. Answer questions about his background, experience, projects, skills, and contact info.
 
@@ -70,7 +69,7 @@ export async function POST(request: Request) {
 
     if (!API_KEY) {
       return NextResponse.json(
-        { error: 'Server is missing OPENCODE_ZEN_API_KEY' },
+        { error: 'Server is missing API key configuration' },
         { status: 500 }
       );
     }
@@ -87,6 +86,7 @@ export async function POST(request: Request) {
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
         temperature: 0.8,
         max_tokens: 800,
+        thinking: { type: 'disabled' },
       }),
     });
 
@@ -99,9 +99,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Transform the upstream OpenAI SSE stream into a plain text token stream.
-    // Falls back to reasoning_content if a model emits no visible content
-    // (defensive: keeps the chat from going blank on reasoning models).
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
@@ -142,8 +139,6 @@ export async function POST(request: Request) {
             }
           }
 
-          // If the model produced ONLY reasoning (empty content), surface it
-          // so the user never sees a blank bubble.
           if (!emittedContent && reasoningFallback.trim()) {
             controller.enqueue(encoder.encode(reasoningFallback.trim()));
           }

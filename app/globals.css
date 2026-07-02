@@ -69,7 +69,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-width: 320px;
-    /* remove overflow-x: hidden from body as lenis handles this wrapper */
   }
 
   ::selection {
@@ -117,10 +116,7 @@ html.modal-open, html.modal-open body {
   overflow: hidden;
 }
 
-/* Fix Lenis container wrapping issue */
-.site-shell, .site-content {
-  /* removed overflow: clip; to allow default scrolling */
-}
+
 
 /* ============================================================
    02 / TEXTURE — film grain (SVG noise, fixed, ~3%)
@@ -1244,6 +1240,7 @@ button:hover .flip-inner {
   position: relative;
   width: 100%;
   height: auto;
+  min-height: 12rem;
   overflow: visible;
   background: transparent;
 }
