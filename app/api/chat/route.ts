@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { respond } from '../../../lib/chatbot';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 const API_KEY = process.env.OPENCODE_ZEN_API_KEY || '';
-const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://api.deepseek.com/v1';
-const MODEL = process.env.OPENCODE_ZEN_MODEL || 'deepseek-chat';
+const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://opencode.ai/zen/v1';
+const MODEL = process.env.OPENCODE_ZEN_MODEL || 'deepseek-v4-flash-free';
 
 const SYSTEM_PROMPT = `You are a friendly portfolio assistant for Nicholas Edmund Tanaka. Answer questions about his background, experience, projects, skills, and contact info.
 
@@ -59,6 +60,23 @@ Here is his complete profile:
 - Email: nicholasedmund18@gmail.com (best way to reach him)
 - Always encourage visitors to reach out via email for collaborations, internships, or interesting product work.`;
 
+function streamText(text: string): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(text));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+    },
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const { messages } = await request.json();
@@ -67,96 +85,106 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
-    if (!API_KEY) {
-      return NextResponse.json(
-        { error: 'Server is missing API key configuration' },
-        { status: 500 }
-      );
-    }
+    // Try upstream AI API first
+    if (API_KEY) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    const upstream = await fetch(`${BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        stream: true,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
-        temperature: 0.8,
-        max_tokens: 800,
-        thinking: { type: 'disabled' },
-      }),
-    });
+      try {
+        const upstream = await fetch(`${BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            stream: true,
+            messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
+            temperature: 0.8,
+            max_tokens: 800,
+            thinking: { type: 'disabled' },
+          }),
+          signal: controller.signal,
+        });
 
-    if (!upstream.ok || !upstream.body) {
-      const errorText = await upstream.text().catch(() => '');
-      console.error('AI API error:', upstream.status, errorText);
-      return NextResponse.json(
-        { error: 'AI service temporarily unavailable' },
-        { status: 502 }
-      );
-    }
+        clearTimeout(timeoutId);
 
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
+        if (upstream.ok && upstream.body) {
+          const encoder = new TextEncoder();
+          const decoder = new TextDecoder();
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = upstream.body!.getReader();
-        let buffer = '';
-        let emittedContent = false;
-        let reasoningFallback = '';
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith('data:')) continue;
-              const payload = trimmed.slice(5).trim();
-              if (payload === '[DONE]') continue;
+          const stream = new ReadableStream({
+            async start(controller) {
+              const reader = upstream.body!.getReader();
+              let buffer = '';
+              let emittedContent = false;
+              let reasoningFallback = '';
 
               try {
-                const json = JSON.parse(payload);
-                const delta = json.choices?.[0]?.delta || {};
-                if (typeof delta.content === 'string' && delta.content) {
-                  emittedContent = true;
-                  controller.enqueue(encoder.encode(delta.content));
-                } else if (typeof delta.reasoning_content === 'string') {
-                  reasoningFallback += delta.reasoning_content;
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  buffer += decoder.decode(value, { stream: true });
+
+                  const lines = buffer.split('\n');
+                  buffer = lines.pop() || '';
+
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || !trimmed.startsWith('data:')) continue;
+                    const payload = trimmed.slice(5).trim();
+                    if (payload === '[DONE]') continue;
+
+                    try {
+                      const json = JSON.parse(payload);
+                      const delta = json.choices?.[0]?.delta || {};
+                      if (typeof delta.content === 'string' && delta.content) {
+                        emittedContent = true;
+                        controller.enqueue(encoder.encode(delta.content));
+                      } else if (typeof delta.reasoning_content === 'string') {
+                        reasoningFallback += delta.reasoning_content;
+                      }
+                    } catch {
+                      // ignore non-JSON keepalive lines
+                    }
+                  }
                 }
-              } catch {
-                // ignore non-JSON keepalive lines
+
+                if (!emittedContent && reasoningFallback.trim()) {
+                  controller.enqueue(encoder.encode(reasoningFallback.trim()));
+                }
+              } catch (err) {
+                console.error('Stream relay error:', err);
+              } finally {
+                controller.close();
               }
-            }
-          }
+            },
+          });
 
-          if (!emittedContent && reasoningFallback.trim()) {
-            controller.enqueue(encoder.encode(reasoningFallback.trim()));
-          }
-        } catch (err) {
-          console.error('Stream relay error:', err);
-        } finally {
-          controller.close();
+          return new Response(stream, {
+            headers: {
+              'Content-Type': 'text/plain; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              Connection: 'keep-alive',
+            },
+          });
         }
-      },
-    });
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-      },
-    });
+        console.error('AI API returned error:', upstream.status);
+      } catch (err: any) {
+        if (err?.name === 'AbortError') {
+          console.error('AI API request timed out');
+        } else {
+          console.error('AI API request failed:', err);
+        }
+      }
+    }
+
+    // Fallback: local response engine
+    const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
+    const reply = lastUserMessage ? respond(lastUserMessage.content) : respond('');
+    return streamText(reply);
   } catch (err) {
     console.error('Chat API error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
