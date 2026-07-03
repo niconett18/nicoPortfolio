@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Nicholas Edmund Tanaka | Portfolio",
     description: "Fullstack Software Developer & Computer Engineering Student at Universitas Indonesia.",
-    creator: "@yourtwitterhandle", // Optional, update if available
+    creator: "@nicholasedmund",
     images: ["/profile-card.jpg"], // Ensure this image is in public directory
   },
   robots: {
@@ -86,7 +86,7 @@ export default function RootLayout({
       className={`h-full antialiased ${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning style={{ position: "relative" }}>
+      <body className="min-h-full flex flex-col" style={{ position: "relative" }}>
         {children}
         <GoogleAnalytics gaId="G-HWG4GJDC39" />
       </body>

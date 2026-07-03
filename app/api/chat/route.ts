@@ -79,10 +79,17 @@ function streamText(text: string): Response {
 
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json();
+    const body = await request.json();
+    const { messages } = body;
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
+    }
+
+    for (const msg of messages) {
+      if (!msg || typeof msg !== 'object' || !['user', 'assistant'].includes(msg.role) || typeof msg.content !== 'string') {
+        return NextResponse.json({ error: 'Invalid message structure' }, { status: 400 });
+      }
     }
 
     // Try upstream AI API first
@@ -172,8 +179,8 @@ export async function POST(request: Request) {
         }
 
         console.error('AI API returned error:', upstream.status);
-      } catch (err: any) {
-        if (err?.name === 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
           console.error('AI API request timed out');
         } else {
           console.error('AI API request failed:', err);
@@ -182,7 +189,7 @@ export async function POST(request: Request) {
     }
 
     // Fallback: local response engine
-    const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
+    const lastUserMessage = messages.filter((m: { role: string }) => m.role === 'user').pop();
     const reply = lastUserMessage ? respond(lastUserMessage.content) : respond('');
     return streamText(reply);
   } catch (err) {

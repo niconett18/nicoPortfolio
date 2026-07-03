@@ -109,7 +109,7 @@ function ModalPreview({ url, title }: { url: string; title: string }) {
           title={title}
           onLoad={() => setLoaded(true)}
           style={{ width: "100%", height: "100%", border: "none", pointerEvents: "none" }}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          sandbox="allow-scripts allow-forms allow-popups"
         />
       </div>
       {!loaded && <div className="project-card-iframe-loading" />}

@@ -122,9 +122,11 @@ interface AuroraProps {
 export default function Aurora(props: AuroraProps) {
   const { colorStops = ['#3b5bff', '#1d2c73', '#3b5bff'], amplitude = 1.0, blend = 0.5 } = props;
   const propsRef = useRef(props);
-  propsRef.current = props;
-
   const ctnDom = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    propsRef.current = props;
+  });
 
   useEffect(() => {
     const ctn = ctnDom.current;
@@ -141,6 +143,7 @@ export default function Aurora(props: AuroraProps) {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.canvas.style.backgroundColor = 'transparent';
 
+    // eslint-disable-next-line prefer-const
     let program: Program;
 
     function resize() {
@@ -206,7 +209,7 @@ export default function Aurora(props: AuroraProps) {
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amplitude]);
+  }, []);
 
   return <div ref={ctnDom} className="aurora-container" />;
 }

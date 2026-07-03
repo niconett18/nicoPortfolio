@@ -1278,16 +1278,6 @@ button:hover .flip-inner {
 }
 
 /* compact grid */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(1.25rem, 3vw, 2rem);
-  width: min(100%, 72rem);
-  max-width: 72rem;
-  margin-inline: auto;
-  justify-content: center;
-}
-
 @media (max-width: 880px) {
   .container-scroll-shell,
   .project-scroll-container--compact {
