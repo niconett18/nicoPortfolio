@@ -284,6 +284,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
           <motion.div
             key={selectedProject.id}
             className="project-modal-overlay"
+            data-lenis-prevent
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.25, ease: "easeOut" } }}
@@ -292,6 +293,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
           >
             <motion.div
               className="project-modal"
+              data-lenis-prevent
               role="dialog"
               aria-modal="true"
               aria-labelledby="project-modal-title"
@@ -337,13 +339,14 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                     <ExternalLink size={13} />
                   </a>
                 </div>
-                <div className="project-modal-preview-scroll">
+                <div className="project-modal-preview-scroll" data-lenis-prevent>
                   <ModalPreview url={selectedProject.url} title={selectedProject.imageAlt} />
                 </div>
               </div>
 
               <motion.div
                 className="project-modal-body"
+                data-lenis-prevent
                 variants={modalContentStagger}
                 initial="hidden"
                 animate="visible"

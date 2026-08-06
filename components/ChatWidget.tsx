@@ -189,6 +189,7 @@ export default function ChatWidget() {
           <motion.div
             id="chat-widget-panel"
             className="chat-panel"
+            data-lenis-prevent
             role="dialog"
             aria-modal="true"
             aria-label="Chat with Nicholas's portfolio assistant"
@@ -215,7 +216,7 @@ export default function ChatWidget() {
                 </button>
               </motion.div>
 
-              <div className="chat-messages" ref={messagesRef}>
+              <div className="chat-messages" ref={messagesRef} data-lenis-prevent>
                 {messages.length === 1 && showSuggestions && (
                   <div className="chat-suggestions">
                     {SUGGESTIONS.map((s) => (

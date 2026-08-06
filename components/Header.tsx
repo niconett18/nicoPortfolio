@@ -162,6 +162,7 @@ export default function Header() {
           <motion.div
             id="site-menu"
             className="menu-overlay"
+            data-lenis-prevent
             initial={{ clipPath: "inset(0 0 100% 0)" }}
             animate={{ clipPath: "inset(0 0 0% 0)" }}
             exit={{ clipPath: "inset(0 0 100% 0)" }}
