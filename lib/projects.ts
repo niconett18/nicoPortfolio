@@ -14,6 +14,23 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    id: 8,
+    name: 'ClariPet',
+    url: 'https://claripetcare.com',
+    desc: 'E-commerce platform for an Indonesian pet-care brand — grooming, hygiene, and health products for cats and dogs. Full storefront with product catalog, a guided recommendation quiz, and live payments.',
+    role: 'Fullstack Development',
+    type: 'Client',
+    year: '2026',
+    stack: ['Next.js', 'React', 'Supabase', 'Midtrans', 'Cloudflare'],
+    highlights: [
+      'Complete commerce flow: catalog, category filtering, checkout, and Midtrans payments',
+      'Supabase-backed product data, storage, and authentication',
+      'Deployed on Cloudflare with a hardened CSP and security headers',
+    ],
+    featured: true,
+    imageAlt: 'ClariPet live website preview',
+  },
+  {
     id: 1,
     name: 'Prime Capital Ledger',
     url: 'https://primecapitaledger.site',

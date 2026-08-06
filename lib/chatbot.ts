@@ -7,8 +7,8 @@ const email = "nicholasedmund18@gmail.com";
 
 const techStack = {
   Frontend: ["Next.js", "React", "Vite", "TypeScript", "TailwindCSS", "Framer Motion"],
-  Backend: ["Node.js", "Express", "TypeScript", "PostgreSQL", "REST APIs"],
-  DevOps: ["Git", "Docker", "Linux", "Vercel", "CI/CD"],
+  Backend: ["Node.js", "Express", "TypeScript", "PostgreSQL", "Supabase", "REST APIs", "Midtrans"],
+  DevOps: ["Git", "Docker", "Linux", "Vercel", "Cloudflare", "CI/CD"],
   Other: ["Figma", "UI/UX", "C", "C++", "Python", "Java"],
 };
 
@@ -18,7 +18,7 @@ const experience = [
     org: "Independent",
     period: "2024 — Present",
     details: [
-      "Designed and developed sumopower.id and cloudream.id from scratch — covering UI/UX, frontend, backend, and deployment.",
+      "Designed and developed ClariPet, sumopower.id, and cloudream.id from scratch — covering UI/UX, frontend, backend, and deployment.",
       "Managed full project lifecycle: client requirements gathering, implementation, and domain/hosting setup.",
       "Delivered all projects as solo builds — owning architecture, code quality, and production-readiness end-to-end.",
     ],
@@ -53,8 +53,19 @@ function getProjectSummary(): string {
   const client = projects.filter((p) => p.type === "Client").length;
   const personal = projects.filter((p) => p.type === "Personal").length;
   const community = projects.filter((p) => p.type === "Community").length;
-  const techSet = new Set(projects.flatMap((p) => p.stack));
-  const techs = [...techSet].slice(0, 6).join(", ");
+  const techCounts = new Map<string, number>();
+  for (const tech of projects.flatMap((p) => p.stack)) {
+    techCounts.set(tech, (techCounts.get(tech) ?? 0) + 1);
+  }
+  const techs = [...techCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([tech]) => tech)
+    .join(", ");
+  const topClients = projects
+    .filter((p) => p.type === "Client")
+    .slice(0, 3)
+    .map((p) => `**[${p.name}](${p.url})**`);
 
   return (
     `Nicholas has built **${projects.length} projects** overall — ${client} client websites, ` +
@@ -62,8 +73,8 @@ function getProjectSummary(): string {
     `designed, developed, and deployed end to end as a solo build.\n\n` +
     `His core stack across projects is ${techs}, and he manages the full lifecycle from requirements ` +
     `through deployment and hosting.\n\n` +
-    `The three most recent client projects are **[Prime Capital Ledger](https://primecapitaledger.site)**, ` +
-    `**[sumopower.id](https://sumopower.id)**, and **[cloudream.id](https://cloudream.id)**. ` +
+    `Three of his standout client projects are ${topClients.slice(0, -1).join(", ")}, ` +
+    `and ${topClients[topClients.length - 1]}. ` +
     `Want details on any specific project?`
   );
 }
