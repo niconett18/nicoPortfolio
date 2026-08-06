@@ -4,9 +4,43 @@ import { respond } from '../../../lib/chatbot';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-const API_KEY = process.env.OPENCODE_ZEN_API_KEY || '';
-const BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || 'https://opencode.ai/zen/v1';
-const MODEL = process.env.OPENCODE_ZEN_MODEL || 'deepseek-v4-flash-free';
+// Multi-provider API Key resolution
+const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+const GROQ_KEY = process.env.GROQ_API_KEY || '';
+const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+const OPENCODE_ZEN_KEY = process.env.OPENCODE_ZEN_API_KEY || '';
+const GENERIC_KEY = process.env.API_KEY || process.env.AI_API_KEY || '';
+
+const API_KEY =
+  OPENCODE_ZEN_KEY ||
+  OPENAI_KEY ||
+  GROQ_KEY ||
+  DEEPSEEK_KEY ||
+  GEMINI_KEY ||
+  GENERIC_KEY;
+
+let BASE_URL = process.env.OPENCODE_ZEN_BASE_URL || process.env.AI_BASE_URL || '';
+let MODEL = process.env.OPENCODE_ZEN_MODEL || process.env.AI_MODEL || '';
+
+if (API_KEY) {
+  if (OPENAI_KEY && !BASE_URL) {
+    BASE_URL = 'https://api.openai.com/v1';
+    MODEL = MODEL || 'gpt-4o-mini';
+  } else if (GROQ_KEY && !BASE_URL) {
+    BASE_URL = 'https://api.groq.com/openai/v1';
+    MODEL = MODEL || 'llama-3.3-70b-versatile';
+  } else if (DEEPSEEK_KEY && !BASE_URL) {
+    BASE_URL = 'https://api.deepseek.com/v1';
+    MODEL = MODEL || 'deepseek-chat';
+  } else if (GEMINI_KEY && !BASE_URL) {
+    BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/';
+    MODEL = MODEL || 'gemini-2.5-flash';
+  } else {
+    BASE_URL = BASE_URL || 'https://opencode.ai/zen/v1';
+    MODEL = MODEL || 'deepseek-v4-flash-free';
+  }
+}
 
 const SYSTEM_PROMPT = `You are a friendly portfolio assistant for Nicholas Edmund Tanaka. Answer questions about his background, experience, projects, skills, and contact info.
 
@@ -78,25 +112,27 @@ function streamText(text: string): Response {
   });
 }
 
+function getFallbackReply(messages: Array<{ role: string; content: string }>): Response {
+  const lastUserMessage = messages.filter((m) => m && m.role === 'user').pop();
+  const reply = lastUserMessage ? respond(lastUserMessage.content) : respond('');
+  return streamText(reply);
+}
+
 export async function POST(request: Request) {
+  let messages: Array<{ role: string; content: string }> = [];
+
   try {
     const body = await request.json();
-    const { messages } = body;
+    messages = body.messages || [];
 
-    if (!messages || !Array.isArray(messages)) {
+    if (!Array.isArray(messages)) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
-    for (const msg of messages) {
-      if (!msg || typeof msg !== 'object' || !['user', 'assistant'].includes(msg.role) || typeof msg.content !== 'string') {
-        return NextResponse.json({ error: 'Invalid message structure' }, { status: 400 });
-      }
-    }
-
-    // Try upstream AI API first
-    if (API_KEY) {
+    // Try upstream AI API first if any key is provided
+    if (API_KEY && BASE_URL) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       try {
         const upstream = await fetch(`${BASE_URL}/chat/completions`, {
@@ -111,7 +147,6 @@ export async function POST(request: Request) {
             messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
             temperature: 0.8,
             max_tokens: 800,
-            thinking: { type: 'disabled' },
           }),
           signal: controller.signal,
         });
@@ -154,7 +189,7 @@ export async function POST(request: Request) {
                         reasoningFallback += delta.reasoning_content;
                       }
                     } catch {
-                      // ignore non-JSON keepalive lines
+                      // ignore non-JSON lines
                     }
                   }
                 }
@@ -179,22 +214,16 @@ export async function POST(request: Request) {
           });
         }
 
-        console.error('AI API returned error:', upstream.status);
+        console.warn('AI API returned status:', upstream.status, '- Falling back to portfolio engine');
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          console.error('AI API request timed out');
-        } else {
-          console.error('AI API request failed:', err);
-        }
+        console.warn('AI API upstream request failed, using fallback engine:', err);
       }
     }
 
-    // Fallback: local response engine
-    const lastUserMessage = messages.filter((m: { role: string }) => m.role === 'user').pop();
-    const reply = lastUserMessage ? respond(lastUserMessage.content) : respond('');
-    return streamText(reply);
+    // Always fallback smoothly to local chatbot engine
+    return getFallbackReply(messages);
   } catch (err) {
     console.error('Chat API error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return getFallbackReply(messages);
   }
 }
