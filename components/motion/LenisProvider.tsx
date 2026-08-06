@@ -1,17 +1,27 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import Lenis from "lenis";
+import useMediaQuery from "../../lib/useMediaQuery";
+
+const LenisContext = createContext<Lenis | null>(null);
+
+/** Access the shared Lenis instance, e.g. to call scrollTo() for anchor nav. */
+export function useLenis(): Lenis | null {
+  return useContext(LenisContext);
+}
 
 /**
  * Smooth inertia scrolling for the whole document.
  * Disabled entirely under prefers-reduced-motion.
  */
 export default function LenisProvider({ children }: { children: React.ReactNode }) {
+  const isReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const lenisRef = useRef<Lenis | null>(null);
+  const [lenisInstance, setLenisInstance] = useState<Lenis | null>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (isReducedMotion) return;
 
     const lenis = new Lenis({
       duration: 1.1,
@@ -23,6 +33,7 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
       gestureOrientation: "vertical",
     });
     lenisRef.current = lenis;
+    setLenisInstance(lenis);
 
     let rafId = requestAnimationFrame(function loop(time: number) {
       if (!document.documentElement.classList.contains("modal-open")) {
@@ -41,8 +52,10 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      lenisRef.current = null;
+      setLenisInstance(null);
     };
-  }, []);
+  }, [isReducedMotion]);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -67,5 +80,5 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     return () => ro.disconnect();
   }, []);
 
-  return <>{children}</>;
+  return <LenisContext.Provider value={lenisInstance}>{children}</LenisContext.Provider>;
 }

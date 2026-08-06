@@ -1,28 +1,61 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { SiGithub, SiInstagram } from "react-icons/si";
 import { EASE } from "../lib/animations";
+import { useScrollLock } from "../lib/useScrollLock";
+import { useLenis } from "./motion/LenisProvider";
+import { scrollToSection } from "./nav/scrollToSection";
+import { useScrollSpy } from "./nav/useScrollSpy";
 
 const NAV = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/projects", label: "Projects" },
-  { href: "/contact", label: "Contact" },
-];
+  { id: "hero", label: "Home" },
+  { id: "projects", label: "Projects" },
+  { id: "about", label: "About" },
+  { id: "contact", label: "Contact" },
+] as const;
+
+const SECTION_IDS = NAV.map((item) => item.id);
 
 export default function Header() {
   const pathname = usePathname();
+  const lenis = useLenis();
+  const onHome = pathname === "/";
+  const { activeId, setActiveOptimistic } = useScrollSpy(SECTION_IDS, onHome);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pendingScrollRef = useRef<string | null>(null);
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  useScrollLock(menuOpen);
 
-  const closeMenu = () => setMenuOpen(false);
+  const hrefFor = (id: string) => {
+    if (!onHome) return id === "hero" ? "/" : `/#${id}`;
+    return `#${id}`;
+  };
+
+  const isActive = (id: string) =>
+    onHome ? activeId === id : id !== "hero" && pathname.startsWith(`/${id}`);
+
+  const goToSection = (id: string) => {
+    setActiveOptimistic(id);
+    scrollToSection(lenis, id);
+    history.replaceState(null, "", id === "hero" ? "/" : `#${id}`);
+  };
+
+  const handleNavClick = (e: React.MouseEvent, id: string) => {
+    if (!onHome) return; // let next/link handle cross-route navigation
+    e.preventDefault();
+    goToSection(id);
+  };
+
+  const closeMenu = (id?: string) => {
+    if (id) pendingScrollRef.current = id;
+    setMenuOpen(false);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,41 +67,80 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    if (menuOpen) return;
+    const id = pendingScrollRef.current;
+    if (!id) return;
+    pendingScrollRef.current = null;
+    // Wait for the scroll lock's MutationObserver to release Lenis before scrolling.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (onHome) {
+          goToSection(id);
+        } else {
+          window.location.href = id === "hero" ? "/" : `/#${id}`;
+        }
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menuOpen]);
+
+  useEffect(() => {
     if (!menuOpen) return;
-    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMenuOpen(false);
     };
     window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKey);
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
   return (
     <>
       <header className={`header ${scrolled ? "header--scrolled" : ""}`}>
-        <Link href="/" className="header-brand">
-          <span className="header-brand-dot" aria-hidden="true" />
-          <span className="header-brand-text">Nicholas Edmund Tanaka</span>
-        </Link>
+        {onHome ? (
+          <a
+            href="#hero"
+            className="header-brand"
+            onClick={(e) => handleNavClick(e, "hero")}
+          >
+            <span className="header-brand-dot" aria-hidden="true" />
+            <span className="header-brand-text">Nicholas Edmund Tanaka</span>
+          </a>
+        ) : (
+          <Link href="/" className="header-brand">
+            <span className="header-brand-dot" aria-hidden="true" />
+            <span className="header-brand-text">Nicholas Edmund Tanaka</span>
+          </Link>
+        )}
 
         <nav className="header-nav" aria-label="Main navigation">
           {NAV.map((item) => {
-            const active = isActive(item.href);
-            return (
+            const active = isActive(item.id);
+            const href = hrefFor(item.id);
+            const content = (
+              <span className="flip">
+                <span className="flip-inner" data-text={item.label}>
+                  {item.label}
+                </span>
+              </span>
+            );
+            return onHome ? (
+              <a
+                key={item.id}
+                href={href}
+                className={`nav-link ${active ? "nav-link--active" : ""}`}
+                aria-current={active ? "page" : undefined}
+                onClick={(e) => handleNavClick(e, item.id)}
+              >
+                {content}
+              </a>
+            ) : (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.id}
+                href={href}
                 className={`nav-link ${active ? "nav-link--active" : ""}`}
                 aria-current={active ? "page" : undefined}
               >
-                <span className="flip">
-                  <span className="flip-inner" data-text={item.label}>
-                    {item.label}
-                  </span>
-                </span>
+                {content}
               </Link>
             );
           })}
@@ -97,10 +169,10 @@ export default function Header() {
           >
             <nav className="menu-nav" aria-label="Mobile navigation">
               {NAV.map((item, i) => {
-                const active = isActive(item.href);
+                const active = isActive(item.id);
                 return (
                   <motion.div
-                    key={item.href}
+                    key={item.id}
                     initial={{ opacity: 0, y: 28 }}
                     animate={{
                       opacity: 1,
@@ -109,14 +181,17 @@ export default function Header() {
                     }}
                     exit={{ opacity: 0, transition: { duration: 0.2 } }}
                   >
-                    <Link
-                      href={item.href}
-                      onClick={closeMenu}
+                    <a
+                      href={hrefFor(item.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        closeMenu(item.id);
+                      }}
                       className={`menu-link ${active ? "menu-link--active" : ""}`}
                       aria-current={active ? "page" : undefined}
                     >
                       {item.label}
-                    </Link>
+                    </a>
                   </motion.div>
                 );
               })}

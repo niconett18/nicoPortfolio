@@ -184,6 +184,10 @@ export default function Aurora(props: AuroraProps) {
 
     let animateId = 0;
     const update = (t: number) => {
+      if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        animateId = requestAnimationFrame(update);
+        return;
+      }
       animateId = requestAnimationFrame(update);
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       program.uniforms.uTime.value = time * speed * 0.1;

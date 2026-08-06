@@ -37,11 +37,14 @@
 
     /* z-scale */
     --z-header: 100;
+    --z-chat: 170;
     --z-menu: 150;
     --z-drawer: 200;
     --z-wipe: 300;
     --z-grain: 400;
     --z-cursor: 500;
+
+    --anchor-offset: calc(var(--header-h) + var(--safe-top) + 1.25rem);
 
     --font-display: var(--font-space-grotesk), system-ui, sans-serif;
     --font-text: var(--font-geist), system-ui, sans-serif;
@@ -293,6 +296,7 @@ html.modal-open, html.modal-open body {
 
 .page-section {
   position: relative;
+  scroll-margin-top: var(--anchor-offset);
 }
 
 .page-section--border {
@@ -1410,28 +1414,39 @@ button:hover .flip-inner {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.08em;
-  color: var(--ink-faint);
+  color: var(--ink-muted);
+  text-decoration: none;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--hairline-strong);
   border-radius: 100px;
   padding: 0.25rem 0.9rem;
   background: rgba(10, 10, 10, 0.6);
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.chrome-url:hover,
+.chrome-url:focus-visible {
+  color: var(--paper);
+  border-color: var(--accent);
+  background: rgba(59, 91, 255, 0.15);
 }
 
 .chrome-open {
   display: grid;
   place-items: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  color: var(--ink-faint);
-  transition: color 0.3s var(--ease);
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--ink-muted);
+  border-radius: 4px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
 }
 
 .chrome-open:hover {
-  color: var(--ink);
+  color: var(--accent);
+  background: rgba(242, 240, 235, 0.06);
 }
 
 .project-modal-preview-scroll {
@@ -1549,14 +1564,19 @@ button:hover .flip-inner {
 
 @media (max-width: 767px) {
   .project-modal-overlay {
-    padding: 1rem 0.75rem calc(1rem + var(--safe-bottom));
+    padding: 0.75rem 0.5rem calc(0.75rem + var(--safe-bottom));
+    align-items: flex-end;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .project-modal {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
     width: 100%;
-    max-height: 88dvh;
+    max-height: 90dvh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .project-modal-preview {
@@ -1564,23 +1584,34 @@ button:hover .flip-inner {
     border-bottom: 1px solid var(--hairline);
   }
 
-  /* The floating close button sits over this corner on small screens. */
   .chrome-open {
-    display: none;
+    display: grid !important;
+    z-index: 4;
   }
 
   .project-modal-chrome {
-    padding-right: 3.2rem;
+    padding-right: 3.5rem;
   }
 
-  /* Static peek of the site on small screens; details scroll below. */
   .project-modal-preview-scroll {
-    max-height: 32dvh;
-    overflow: hidden;
+    max-height: 38dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .project-modal-body {
-    padding: 1.25rem 1.25rem 1.5rem;
+    padding: 1.25rem 1rem calc(1.5rem + var(--safe-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .project-modal-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .project-modal-actions .btn {
+    width: 100%;
   }
 }
 
@@ -1611,6 +1642,10 @@ button:hover .flip-inner {
   .sec {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+
+  .sec-sticky-label {
+    position: static;
   }
 }
 
@@ -1989,8 +2024,68 @@ button:hover .flip-inner {
 }
 
 /* ============================================================
-   17 / CHAT — restyled to match the system
+   17 / CHAT — restyled floating widget
    ============================================================ */
+.chat-launcher {
+  position: fixed;
+  bottom: calc(1.5rem + var(--safe-bottom));
+  right: clamp(1rem, 4vw, 2rem);
+  z-index: var(--z-chat);
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--paper);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.chat-launcher:hover {
+  transform: scale(1.08);
+}
+
+.chat-panel {
+  position: fixed;
+  bottom: calc(5.75rem + var(--safe-bottom));
+  right: clamp(1rem, 4vw, 2rem);
+  z-index: var(--z-chat);
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(34rem, calc(100vh - 8rem));
+  background: #121212;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--hairline);
+  background: rgba(242, 240, 235, 0.03);
+}
+
+.chat-panel-close {
+  background: transparent;
+  border: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.chat-panel-close:hover {
+  color: var(--ink);
+}
+
 .chat-section {
   padding: clamp(2.5rem, 6vh, 4.5rem) var(--pad-x);
   border-top: 1px solid var(--hairline);
@@ -2230,6 +2325,33 @@ button:hover .flip-inner {
 .chat-send-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* ============================================================
+   19 / ONE-PAGER — inline section heads, scroll cue, sticky labels
+   ============================================================ */
+.sec-inline-head {
+  padding: clamp(3rem, 8vh, 6rem) var(--pad-x) 1.5rem;
+}
+
+.scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.scroll-cue-line {
+  width: 1px;
+  height: 3.5rem;
+  background: var(--hairline-strong);
+}
+
+.sec-sticky-label {
+  position: sticky;
+  top: calc(var(--anchor-offset));
+  align-self: start;
 }
 
 /* ============================================================

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef } from "react";
-import { MotionValue, motion, useScroll, useTransform } from "framer-motion";
+import { MotionValue, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import useMediaQuery from "../../lib/useMediaQuery";
 
 type ContainerScrollProps = {
   titleComponent: string | React.ReactNode;
@@ -25,18 +26,24 @@ export const ContainerScroll = ({
     target: containerRef,
     offset: ["start end", "end start"],
   });
-  const [isMobile, setIsMobile] = React.useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const reduce = useReducedMotion();
 
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const rotate = useTransform(scrollYProgress, [0, 0.52, 1], isMobile ? [0, 0, 0] : [8, 0, -2]);
-  const scale = useTransform(scrollYProgress, [0, 0.52, 1], isMobile ? [0.96, 1, 0.99] : [1.018, 1, 0.985]);
-  const translate = useTransform(scrollYProgress, [0, 0.52, 1], isMobile ? [6, 0, -8] : [22, 0, -34]);
+  const rotate = useTransform(
+    scrollYProgress,
+    [0, 0.52, 1],
+    reduce ? [0, 0, 0] : isMobile ? [0, 0, 0] : [8, 0, -2]
+  );
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.52, 1],
+    reduce ? [1, 1, 1] : isMobile ? [0.96, 1, 0.99] : [1.018, 1, 0.985]
+  );
+  const translate = useTransform(
+    scrollYProgress,
+    [0, 0.52, 1],
+    reduce ? [0, 0, 0] : isMobile ? [6, 0, -8] : [22, 0, -34]
+  );
 
   return (
     <section className={`container-scroll-shell ${className}`} ref={containerRef}>
