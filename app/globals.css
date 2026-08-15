@@ -1316,6 +1316,311 @@ button:hover .flip-inner {
 }
 
 /* ============================================================
+   12c / PROJECTS SHOWCASE — pinned horizontal card track
+   Sizes mirror lenis.dev: authored against a 1440px desktop frame
+   and a 375px mobile frame, expressed as vw so they scale fluidly.
+   ============================================================ */
+.projects-block--showcase {
+  padding-inline: 0;
+}
+
+.projects-block--showcase .projects-block-head {
+  padding-inline: var(--pad-x);
+}
+
+/* Mobile default: a plain vertical column, exactly as the reference does
+   below 800px. The track is never wider than its container here, so the
+   JS transform resolves to 0 and nothing is pinned. */
+.showcase-wrapper {
+  --sc-card: 74.6667vw; /* 280 / 375 */
+  --sc-gap: 8.5333vw; /*  32 / 375 */
+  --sc-edge: 0px;
+  --sc-edge-end: 0px;
+  --sc-radius: 2.1333vw; /*   8 / 375 */
+  --sc-pad: 4.2667vw; /*  16 / 375 */
+  --sc-arrow: 8.5333vw; /*  32 / 375 */
+  --sc-title: 4.8vw; /*  18 / 375 */
+  --sc-credits: 4.2667vw; /*  16 / 375 */
+  --sc-h: auto;
+  --sc-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  position: relative;
+  height: auto;
+}
+
+.showcase-inner {
+  position: static;
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+}
+
+.showcase-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.showcase-card {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: var(--sc-card);
+}
+
+.showcase-card:not(:last-child) {
+  margin-bottom: var(--sc-gap);
+}
+
+/* media */
+.showcase-card-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--sc-radius);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.showcase-card-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: #0a0a0a;
+  opacity: 0;
+  transition: opacity 0.6s var(--sc-expo);
+  pointer-events: none;
+}
+
+.showcase-card-media-inner {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: rgba(242, 240, 235, 0.04);
+}
+
+.showcase-card-img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  filter: saturate(0.92) contrast(1.06);
+  transition: filter 0.6s var(--sc-expo);
+}
+
+.showcase-card-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(242, 240, 235, 0.04),
+    rgba(242, 240, 235, 0.09),
+    rgba(242, 240, 235, 0.04)
+  );
+  background-size: 200% 100%;
+  animation: showcase-shimmer 1.4s linear infinite;
+}
+
+@keyframes showcase-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.showcase-card-arrow {
+  position: absolute;
+  right: var(--sc-pad);
+  bottom: var(--sc-pad);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sc-arrow);
+  aspect-ratio: 1;
+  border-radius: 100%;
+  background-color: var(--accent);
+  color: var(--paper);
+  opacity: 0;
+  transition: opacity 0.6s var(--sc-expo);
+}
+
+.showcase-card-arrow svg {
+  width: 50%;
+  height: 50%;
+  transform: scale(0.33);
+  transition: transform 0.6s var(--sc-expo);
+}
+
+/* caption below the card */
+.showcase-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--sc-pad) 0;
+}
+
+.showcase-card-title {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--sc-title);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-align: left;
+  color: var(--ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  transition: color 0.6s var(--sc-expo);
+}
+
+.showcase-card-credits {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--sc-credits);
+  line-height: 1.35;
+  color: var(--ink-faint);
+}
+
+.showcase-card-credits > * {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* hover / focus — one state for the whole card, like the reference */
+.showcase-card:hover .showcase-card-media::after,
+.showcase-card:focus-within .showcase-card-media::after {
+  opacity: 0.33;
+}
+
+.showcase-card:hover .showcase-card-arrow,
+.showcase-card:focus-within .showcase-card-arrow {
+  opacity: 1;
+}
+
+.showcase-card:hover .showcase-card-arrow svg,
+.showcase-card:focus-within .showcase-card-arrow svg {
+  transform: scale(1);
+}
+
+.showcase-card:hover .showcase-card-title,
+.showcase-card:focus-within .showcase-card-title {
+  color: var(--accent);
+}
+
+.showcase-card:hover .showcase-card-img {
+  filter: saturate(1.08) contrast(1.1);
+}
+
+
+/* Desktop: pin the row and let vertical scroll drive it sideways.
+   Wrapper height equals the track width, so the scroll budget matches
+   the distance the row has to travel. */
+@media (min-width: 800px) {
+  .showcase-wrapper {
+    --sc-card: 33.3333vw; /* 480 / 1440 */
+    --sc-gap: 9.6759vw; /* 139.33 / 1440 — 2 gutters + 1 column */
+    /* Gutters, not run-ups: the row starts flush with the page gutter (in line
+       with the section heading) and ends one gap short of the right edge, so
+       neither end of the pin shows a screen of empty space. */
+    --sc-edge: var(--pad-x);
+    --sc-edge-end: var(--sc-gap);
+    --sc-radius: 0.5556vw; /*   8 / 1440 */
+    --sc-pad: 1.1111vw; /*  16 / 1440 */
+    --sc-arrow: 2.2222vw; /*  32 / 1440 */
+    --sc-title: 1.25vw; /*  18 / 1440 */
+    --sc-credits: 1.1111vw; /*  16 / 1440 */
+    --sc-h: 30.5vw; /* 440 / 1440 — one card tall */
+
+    height: calc(
+      var(--sc-edge) + var(--sc-edge-end) + var(--sc-count, 8) * var(--sc-card) +
+        (var(--sc-count, 8) - 1) * var(--sc-gap)
+    );
+  }
+
+  .showcase-inner {
+    position: sticky;
+    top: calc((100vh - var(--sc-h)) / 2);
+    height: var(--sc-h);
+    align-items: flex-start;
+  }
+
+  .showcase-track {
+    flex-direction: row;
+    align-items: flex-start;
+    width: auto;
+    will-change: transform;
+  }
+
+  .showcase-card:not(:last-child) {
+    margin-bottom: 0;
+    margin-right: var(--sc-gap);
+  }
+
+  .showcase-card:first-child {
+    margin-left: var(--sc-edge);
+  }
+
+  .showcase-card:last-child {
+    margin-right: var(--sc-edge-end);
+  }
+}
+
+/* No pinning when motion is reduced — Lenis is off here too. */
+@media (prefers-reduced-motion: reduce) {
+  .showcase-wrapper {
+    height: auto;
+  }
+
+  .showcase-inner {
+    position: static;
+    height: auto;
+  }
+
+  .showcase-track {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    transform: none !important;
+  }
+
+  .showcase-card {
+    width: min(38rem, 92%);
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .showcase-card:not(:last-child) {
+    margin-bottom: 3rem;
+  }
+
+  .showcase-card-media::after,
+  .showcase-card-arrow,
+  .showcase-card-arrow svg,
+  .showcase-card-title,
+  .showcase-card-img {
+    transition: none;
+  }
+}
+
+/* ============================================================
    13 / PROJECT MODAL — centered dialog
    ============================================================ */
 .project-modal-overlay {

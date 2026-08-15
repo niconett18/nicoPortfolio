@@ -2,18 +2,10 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, ExternalLink, X } from "lucide-react";
-import { ContainerScroll } from "../ui/container-scroll-animation";
+import { ExternalLink, X } from "lucide-react";
 import MagneticButton from "../motion/MagneticButton";
-import ScrollReveal from "../motion/ScrollReveal";
-import {
-  EASE,
-  modalContentStagger,
-  modalItem,
-  modalPanel,
-  popIn,
-  staggerContainer,
-} from "../../lib/animations";
+import ProjectsShowcase from "./ProjectsShowcase";
+import { EASE, modalContentStagger, modalItem, modalPanel } from "../../lib/animations";
 import { projects, type Project } from "../../lib/projects";
 import { useScrollLock } from "../../lib/useScrollLock";
 
@@ -26,46 +18,6 @@ function domainOf(url: string): string {
 
 function typeBadgeClass(type: Project["type"]): string {
   return type === "Client" ? "type-badge type-badge--client" : "type-badge";
-}
-
-/* Lazy-loaded preview: static screenshot image for fast project cards. */
-function GridPreview({ url, title }: { url: string; title: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "400px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  if (!visible) {
-    return <div ref={containerRef} className="project-shot project-shot--placeholder" />;
-  }
-
-  return (
-    <div ref={containerRef} className="project-shot">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=1440`}
-        alt={title}
-        onLoad={() => setLoaded(true)}
-        className="project-shot-img"
-      />
-      {!loaded && <div className="project-card-iframe-loading" />}
-    </div>
-  );
 }
 
 /* Scaled live-site iframe inside the modal only. */
@@ -116,69 +68,6 @@ function ModalPreview({ url, title }: { url: string; title: string }) {
       </div>
       {!loaded && <div className="project-card-iframe-loading" />}
     </div>
-  );
-}
-
-function ProjectContainer({
-  project,
-  index,
-  onOpen,
-}: {
-  project: Project;
-  index: number;
-  onOpen: () => void;
-}) {
-  const titleContent = (
-    <div className="project-scroll-info">
-      <div className="project-scroll-kicker">
-        <span className="project-scroll-index">{String(index + 1).padStart(2, "0")}</span>
-        <span className={typeBadgeClass(project.type)}>{project.type}</span>
-        <span className="mono-label">{project.year}</span>
-      </div>
-
-      <div className="project-scroll-title-row">
-        <h3 className="project-card-heading">{project.name}</h3>
-        <span className="project-card-icon" aria-hidden="true">
-          <ArrowUpRight size={18} />
-        </span>
-      </div>
-
-      <p className="project-card-desc">{project.desc}</p>
-
-      <ul className="chip-row" aria-label="Tech stack">
-        {project.stack.map((tech) => (
-          <li key={tech} className="chip">
-            {tech}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-
-  const previewContent = (
-    <button
-      type="button"
-      className="project-scroll-preview"
-      onClick={onOpen}
-      aria-label={`Open ${project.name} details`}
-    >
-      <GridPreview url={project.url} title={project.imageAlt} />
-      <span className="project-scroll-preview-label">View details</span>
-    </button>
-  );
-
-  return (
-    <ScrollReveal className="project-scroll-item project-scroll-item--compact" yOffset={50}>
-      <ContainerScroll
-        className="project-scroll-container--compact"
-        headerClassName="project-scroll-header"
-        cardClassName="project-scroll-card"
-        contentClassName="project-scroll-card-content"
-        titleComponent={titleContent}
-      >
-        {previewContent}
-      </ContainerScroll>
-    </ScrollReveal>
   );
 }
 
@@ -254,28 +143,13 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
           </motion.div>
         )}
 
-        <section className="projects-block page-section">
+        <section className="projects-block projects-block--showcase page-section">
           {standalone && (
             <div className="projects-block-head">
               <h2 className="mono-label mono-label--accent">All Projects</h2>
             </div>
           )}
-          <motion.div
-            className="projects-grid"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-40px" }}
-          >
-            {projects.map((project, i) => (
-              <ProjectContainer
-                key={project.id}
-                project={project}
-                index={i}
-                onOpen={() => setSelectedProject(project)}
-              />
-            ))}
-          </motion.div>
+          <ProjectsShowcase items={projects} onOpen={setSelectedProject} />
         </section>
       </div>
 
