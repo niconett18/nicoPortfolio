@@ -1953,6 +1953,15 @@ button:hover .flip-inner {
   border-top: 1px solid var(--hairline);
 }
 
+/* Give each block close to a screen of its own so the blocks arrive one at a
+   time while the label beside them stays pinned, as the reference does. */
+@media (min-width: 801px) {
+  .sec {
+    min-height: 88vh;
+    align-content: center;
+  }
+}
+
 @media (max-width: 800px) {
   .sec {
     grid-template-columns: 1fr;
