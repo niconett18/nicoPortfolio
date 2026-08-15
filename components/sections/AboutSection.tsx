@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import MagneticButton from "../motion/MagneticButton";
 import Parallax from "../motion/Parallax";
@@ -27,7 +26,6 @@ import {
 import { FaJava } from "react-icons/fa";
 import ScrollReveal from "../motion/ScrollReveal";
 import ScrollHighlight from "../motion/ScrollHighlight";
-import { EASE } from "../../lib/animations";
 
 const education = {
   degree: "B.Eng. in Computer Engineering",
@@ -104,7 +102,11 @@ const skills = [
   },
 ];
 
-function Section({
+/**
+ * One block in the scrolling column. Each holds roughly a screen so it
+ * arrives on its own while the heading beside it stays pinned.
+ */
+function Feature({
   label,
   heading,
   children,
@@ -114,161 +116,135 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <ScrollReveal className="sec page-section" yOffset={60}>
-      <div className="sec-sticky-label">
-        <p className="mono-label mono-label--accent">{label}</p>
-        <h2 className="sec-heading">
-          <SplitText text={heading} mode="words" inView stagger={0.07} duration={1.1} />
-        </h2>
-      </div>
+    <ScrollReveal className="about-feature" yOffset={50}>
+      <p className="mono-label mono-label--accent">{label}</p>
+      <h3 className="about-feature-heading">
+        <SplitText text={heading} mode="words" inView stagger={0.07} duration={1.1} />
+      </h3>
       <div>{children}</div>
     </ScrollReveal>
   );
 }
 
 export default function AboutSection({ standalone = false }: { standalone?: boolean }) {
+  const title = (
+    <>
+      <SplitText text="About Me" mode="words" inView stagger={0.07} duration={1.1} />
+      <span className="text-accent">.</span>
+    </>
+  );
+
   return (
-    <div id="about" className="page-section">
-      {standalone ? (
-        <section className="page-head page-section">
-          <div className="sec-rule-block">
-            <motion.p
-              className="mono-label mono-label--accent"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.6, ease: EASE, delay: 0.5 } }}
-            >
-              About — Profile
-            </motion.p>
-            <h1 className="display-lg sec-rule-heading" style={{ marginTop: "1rem" }}>
-              <SplitText text="About" delay={0.55} />{" "}
-              <SplitText text="Me" delay={0.7} />
-              <span className="text-accent">.</span>
-            </h1>
-          </div>
-          <motion.p
-            className="lead"
-            style={{ marginTop: "1.75rem", maxWidth: "34rem" }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE, delay: 0.9 } }}
-          >
-            Engineering scalable systems at the intersection of robust backend architecture
-            and striking frontend execution. Minimalist by design, maximalist in performance.
-          </motion.p>
-        </section>
-      ) : (
-        <motion.div
-          className="sec-inline-head"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } }}
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="sec-rule-block">
-            <p className="mono-label mono-label--accent">About — Profile</p>
-            <h2 className="sec-heading sec-rule-heading">
-              <SplitText text="About Me" mode="words" inView stagger={0.07} duration={1.1} />
-              <span className="text-accent">.</span>
-            </h2>
-          </div>
-          <p className="lead" style={{ marginTop: "1rem", maxWidth: "34rem" }}>
-            Engineering scalable systems at the intersection of robust backend architecture
-            and striking frontend execution. Minimalist by design, maximalist in performance.
-          </p>
-        </motion.div>
-      )}
+    <div id="about" className="page-section about-why">
+      {/* Holds its place while the column beside it scrolls past. */}
+      <div className="about-sticky">
+        <p className="mono-label mono-label--accent">About — Profile</p>
+        {standalone ? (
+          <h1 className="sec-rule-heading">{title}</h1>
+        ) : (
+          <h2 className="sec-rule-heading">{title}</h2>
+        )}
+        <p className="about-sticky-lead">
+          Engineering scalable systems at the intersection of robust backend architecture and
+          striking frontend execution. Minimalist by design, maximalist in performance.
+        </p>
+      </div>
 
-      <Section label="Snapshot" heading="At a glance">
-        <div className="about-facts">
-          <ScrollHighlight>
-            <article className="about-fact">
-              <h3 className="mono-label">Focus</h3>
-              <p>
-                Next.js &amp; React ecosystem, backend architecture, and high-performance
-                user interfaces.
-              </p>
-            </article>
-          </ScrollHighlight>
-          <ScrollHighlight>
-            <article className="about-fact">
-              <h3 className="mono-label">Education</h3>
-              <p>Computer Engineering</p>
-              <p className="fact-meta">Universitas Indonesia &middot; expected 2028</p>
-            </article>
-          </ScrollHighlight>
-          <ScrollHighlight>
-            <article className="about-fact">
-              <h3 className="mono-label">Currently</h3>
-              <p>Shipping freelance web work and exploring AI-assisted developer tooling.</p>
-            </article>
-          </ScrollHighlight>
-        </div>
-      </Section>
+      <div className="about-flow">
+        <Feature label="Snapshot" heading="At a glance">
+          <div className="about-facts">
+            <ScrollHighlight>
+              <article className="about-fact">
+                <h4 className="mono-label">Focus</h4>
+                <p>
+                  Next.js &amp; React ecosystem, backend architecture, and high-performance
+                  user interfaces.
+                </p>
+              </article>
+            </ScrollHighlight>
+            <ScrollHighlight>
+              <article className="about-fact">
+                <h4 className="mono-label">Education</h4>
+                <p>Computer Engineering</p>
+                <p className="fact-meta">Universitas Indonesia &middot; expected 2028</p>
+              </article>
+            </ScrollHighlight>
+            <ScrollHighlight>
+              <article className="about-fact">
+                <h4 className="mono-label">Currently</h4>
+                <p>Shipping freelance web work and exploring AI-assisted developer tooling.</p>
+              </article>
+            </ScrollHighlight>
+          </div>
+        </Feature>
 
-      <Section label="Education" heading="Where I'm learning">
-        <article className="entry">
-          <span className="entry-period">{education.period}</span>
+        <Feature label="Education" heading="Where I'm learning">
+          <article className="entry">
+            <span className="entry-period">{education.period}</span>
+            <div>
+              <h4>{education.degree}</h4>
+              <p className="entry-org">{education.school}</p>
+              <p className="entry-detail">{education.detail}</p>
+            </div>
+          </article>
+        </Feature>
+
+        <Feature label="Experience" heading="Where I've worked">
           <div>
-            <h3>{education.degree}</h3>
-            <p className="entry-org">{education.school}</p>
-            <p className="entry-detail">{education.detail}</p>
+            {experience.map((e) => (
+              <ScrollHighlight key={e.role}>
+                <article className="entry">
+                  <span className="entry-period">{e.period}</span>
+                  <div>
+                    <h4>{e.role}</h4>
+                    <p className="entry-org">{e.org}</p>
+                    <ul className="entry-bullets">
+                      {e.bullets.map((b) => (
+                        <li key={b}>{b}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              </ScrollHighlight>
+            ))}
           </div>
-        </article>
-      </Section>
+        </Feature>
 
-      <Section label="Experience" heading="Where I've worked">
-        <div>
-          {experience.map((e) => (
-            <ScrollHighlight key={e.role}>
-              <article className="entry">
-                <span className="entry-period">{e.period}</span>
-                <div>
-                  <h3>{e.role}</h3>
-                  <p className="entry-org">{e.org}</p>
-                  <ul className="entry-bullets">
-                    {e.bullets.map((b) => (
-                      <li key={b}>{b}</li>
+        {standalone && (
+          <Feature label="Projects" heading="What I've shipped">
+            <div className="sec-pointer">
+              <p>
+                A curated set of solo-built platforms — ClariPet, Prime Capital Ledger,
+                sumopower.id, and more — spanning pet-care commerce, fintech, and B2B.
+              </p>
+              <MagneticButton href="/projects" className="btn">
+                View projects
+                <ArrowUpRight size={14} strokeWidth={2} />
+              </MagneticButton>
+            </div>
+          </Feature>
+        )}
+
+        <Feature label="Skills" heading="Tools I work with">
+          <div className="skills-grid">
+            {skills.map((s, i) => (
+              <Parallax key={s.label} travel={[36, -28, 44, -32][i % 4]}>
+                <div className="skills-col">
+                  <h4 className="mono-label">{s.label}</h4>
+                  <ul>
+                    {s.items.map((item) => (
+                      <li key={item.name}>
+                        {item.icon ? <item.icon /> : <span className="skill-bullet" />}
+                        <span>{item.name}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
-              </article>
-            </ScrollHighlight>
-          ))}
-        </div>
-      </Section>
-
-      {standalone && (
-        <Section label="Projects" heading="What I've shipped">
-          <div className="sec-pointer">
-            <p>
-              A curated set of solo-built platforms — ClariPet, Prime Capital Ledger,
-              sumopower.id, and more — spanning pet-care commerce, fintech, and B2B.
-            </p>
-            <MagneticButton href="/projects" className="btn">
-              View projects
-              <ArrowUpRight size={14} strokeWidth={2} />
-            </MagneticButton>
+              </Parallax>
+            ))}
           </div>
-        </Section>
-      )}
-
-      <Section label="Skills" heading="Tools I work with">
-        <div className="skills-grid">
-          {skills.map((s, i) => (
-            <Parallax key={s.label} travel={[36, -28, 44, -32][i % 4]}>
-              <div className="skills-col">
-                <h3 className="mono-label">{s.label}</h3>
-                <ul>
-                  {s.items.map((item) => (
-                    <li key={item.name}>
-                      {item.icon ? <item.icon /> : <span className="skill-bullet" />}
-                      <span>{item.name}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Parallax>
-          ))}
-        </div>
-      </Section>
+        </Feature>
+      </div>
     </div>
   );
 }

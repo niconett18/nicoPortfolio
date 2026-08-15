@@ -1953,12 +1953,87 @@ button:hover .flip-inner {
   border-top: 1px solid var(--hairline);
 }
 
-/* Give each block close to a screen of its own so the blocks arrive one at a
-   time while the label beside them stays pinned, as the reference does. */
-@media (min-width: 801px) {
-  .sec {
-    min-height: 88vh;
-    align-content: center;
+/* ============================================================
+   14b / ABOUT — one pinned title, blocks scrolling past it
+   ============================================================ */
+.about-why {
+  display: grid;
+  grid-template-columns: minmax(12rem, 22rem) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  padding: clamp(3rem, 8vh, 6rem) var(--pad-x) clamp(4rem, 10vh, 8rem);
+}
+
+/* Stays put for the whole section while .about-flow moves. */
+.about-sticky {
+  position: sticky;
+  top: 26vh;
+  align-self: start;
+  border-left: 3px solid var(--accent);
+  padding: 0.2rem 0 0.5rem clamp(0.9rem, 1.5vw, 1.5rem);
+}
+
+.about-sticky-lead {
+  margin-top: 1.5rem;
+  max-width: 22rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+.about-flow {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Roughly a screen each, so they arrive one at a time. */
+.about-feature {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 88vh;
+  padding: clamp(2rem, 5vh, 4rem) 0;
+}
+
+.about-feature-heading {
+  margin: 0.6rem 0 1.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.about-feature .entry h4,
+.about-feature .skills-col h4,
+.about-feature .about-fact h4 {
+  font: inherit;
+}
+
+.about-feature .entry h4 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+@media (max-width: 800px) {
+  .about-why {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .about-sticky {
+    position: static;
+  }
+
+  .about-feature {
+    min-height: 0;
+    padding: clamp(2rem, 5vh, 3rem) 0;
   }
 }
 
@@ -2697,6 +2772,12 @@ button:hover .flip-inner {
   padding: 0.2rem 0 0.5rem clamp(0.9rem, 1.5vw, 1.5rem);
   width: max-content;
   max-width: 100%;
+}
+
+/* Let the split words and the trailing accent dot share one line box, so the
+   dot wraps with the last word instead of dropping to a line of its own. */
+.sec-rule-heading > span[aria-label] {
+  display: inline !important;
 }
 
 .sec-rule-heading {
