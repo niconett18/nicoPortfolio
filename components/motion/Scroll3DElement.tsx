@@ -47,11 +47,9 @@ function Scene({ scrollYProgress, scrollVelocity }: {
   const meshRef = useRef<THREE.Mesh>(null);
   const idleRotation = useRef({ x: 0, y: 0, z: 0 });
 
-  // Create torus knot geometry (like lenis.dev)
-  const geometry = useMemo(
-    () => new THREE.TorusKnotGeometry(1, 0.35, 128, 16, 2, 3),
-    []
-  );
+  // A faceted icosahedron: one readable solid instead of a dense knot, so the
+  // wireframe stays a handful of clean triangles behind the content.
+  const geometry = useMemo(() => new THREE.IcosahedronGeometry(1.45, 1), []);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
@@ -87,7 +85,7 @@ function Scene({ scrollYProgress, scrollVelocity }: {
         color="#3b5bff"
         wireframe
         transparent
-        opacity={0.25}
+        opacity={0.38}
       />
     </mesh>
   );
