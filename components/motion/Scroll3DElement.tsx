@@ -47,83 +47,39 @@ function Scene({ scrollYProgress, scrollVelocity }: {
   const meshRef = useRef<THREE.Group>(null);
   const idleRotation = useRef({ x: 0, y: 0, z: 0 });
 
-  /* An original low-poly hand built from primitives — palm, four curled
-     fingers, an angled thumb and a forearm — rather than a downloaded model.
-     Each phalanx hangs off the previous one so the curl accumulates down the
-     finger the way a real joint chain does. */
-  const hand = useMemo(() => {
-    const material = new THREE.MeshBasicMaterial({
-      color: "#3b5bff",
-      wireframe: true,
+  /* A single polished ring. Simple enough to stay out of the content's way,
+     curved enough to catch the light as it turns. */
+  const object = useMemo(() => {
+    // Polished rather than emissive-heavy: most of the glow should come from
+    // the lights raking across it, which is what makes metal read as metal.
+    const material = new THREE.MeshStandardMaterial({
+      color: "#16205e",
+      emissive: "#3b5bff",
+      emissiveIntensity: 0.22,
+      roughness: 0.2,
+      metalness: 0.88,
       transparent: true,
-      opacity: 0.38,
+      // Restrained on purpose: it should register as depth behind the content,
+      // never compete with it.
+      opacity: 0.4,
     });
 
-    const root = new THREE.Group();
-    // Inner rig carries the modelling scale and centring, leaving the outer
-    // group's scale free for the scroll waypoints to drive.
+    // High segment counts: the premium read comes from an unfaceted
+    // silhouette, which is exactly what the earlier low-poly passes lacked.
+    const geometry = new THREE.TorusGeometry(1.15, 0.3, 48, 160);
+
+    const group = new THREE.Group();
+    // Inner rig holds the modelling scale so the outer group's scale stays
+    // free for the scroll waypoints to drive.
     const rig = new THREE.Group();
-    rig.scale.setScalar(0.62);
-    rig.position.y = 0.3;
-    root.add(rig);
-
-    const box = (w: number, h: number, d: number) => new THREE.BoxGeometry(w, h, d);
-
-    // Palm, slightly tapered towards the wrist.
-    const palm = new THREE.Mesh(box(1.02, 1.15, 0.3), material);
-    rig.add(palm);
-
-    // Short forearm stub — enough to read as an arm without dominating.
-    const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.23, 0.95, 8, 1), material);
-    forearm.position.y = -1.02;
-    rig.add(forearm);
-
-    // One finger as a chain of shrinking phalanges, each curling a little more.
-    const finger = (lengths: number[], width: number) => {
-      const base = new THREE.Group();
-      let parent: THREE.Group = base;
-      lengths.forEach((len, i) => {
-        const joint = new THREE.Group();
-        joint.rotation.x = -(0.26 + i * 0.2);
-        parent.add(joint);
-
-        const bone = new THREE.Mesh(box(width, len, width), material);
-        bone.position.y = len / 2;
-        joint.add(bone);
-
-        const next = new THREE.Group();
-        next.position.y = len;
-        joint.add(next);
-        parent = next;
-      });
-      return base;
-    };
-
-    // Index → little finger, splayed across the knuckle line.
-    const fingers: [number, number, number[], number][] = [
-      [-0.34, 0.02, [0.4, 0.28, 0.2], 0.19],
-      [-0.11, 0.06, [0.45, 0.32, 0.22], 0.2],
-      [0.12, 0.04, [0.42, 0.3, 0.21], 0.19],
-      [0.34, -0.02, [0.33, 0.24, 0.17], 0.17],
-    ];
-    fingers.forEach(([x, lift, lengths, width], i) => {
-      const f = finger(lengths, width);
-      f.position.set(x, 0.575 + lift, 0);
-      f.rotation.z = (i - 1.5) * 0.05;
-      rig.add(f);
-    });
-
-    // Thumb, swung out and forward from the side of the palm.
-    const thumb = finger([0.36, 0.28], 0.2);
-    thumb.position.set(-0.5, 0.1, 0.06);
-    thumb.rotation.set(0.35, 0, 1.0);
-    rig.add(thumb);
-
-    return root;
+    rig.scale.setScalar(0.5);
+    rig.add(new THREE.Mesh(geometry, material));
+    group.add(rig);
+    return group;
   }, []);
 
   useEffect(() => {
-    const current = hand;
+    const current = object;
     return () => {
       current.traverse((child) => {
         if (child instanceof THREE.Mesh) {
@@ -132,7 +88,7 @@ function Scene({ scrollYProgress, scrollVelocity }: {
         }
       });
     };
-  }, [hand]);
+  }, [object]);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
@@ -141,33 +97,42 @@ function Scene({ scrollYProgress, scrollVelocity }: {
     const velocity = scrollVelocity.get();
 
     // ── Idle auto-rotation (always spinning slowly) ──
-    const idleSpeed = 0.15;
+    const idleSpeed = 0.09;
     idleRotation.current.x += delta * idleSpeed * 0.7;
     idleRotation.current.y += delta * idleSpeed;
     idleRotation.current.z += delta * idleSpeed * 0.3;
 
     // ── Scroll-linked rotation ──
-    // Mostly a turn about Y so the hand reads as a hand; X and Z only sway,
-    // which a tumbling knot could get away with but a limb cannot.
-    const scrollRotBoost = velocity * 0.002;
+    // Unhurried and continuous. The drift across the viewport carries the
+    // effect; a fast spin would read as busy rather than considered.
+    const scrollRotBoost = velocity * 0.0018;
     meshRef.current.rotation.x =
-      Math.sin(idleRotation.current.x) * 0.2 + progress * Math.PI * 0.4;
-    meshRef.current.rotation.y =
-      idleRotation.current.y + progress * Math.PI * 2 + scrollRotBoost;
-    meshRef.current.rotation.z =
-      Math.sin(idleRotation.current.z) * 0.16 + progress * Math.PI * 0.3;
+      idleRotation.current.x + progress * Math.PI * 1.1 + scrollRotBoost;
+    meshRef.current.rotation.y = idleRotation.current.y + progress * Math.PI * 1.5;
+    meshRef.current.rotation.z = idleRotation.current.z + progress * Math.PI * 0.35;
 
     // ── Position & scale from waypoints ──
     const [wx, wy, ws] = lerpWaypoints(progress);
     // Smooth lerp towards target for fluid feel
-    meshRef.current.position.x += (wx - meshRef.current.position.x) * 0.08;
-    meshRef.current.position.y += (wy - meshRef.current.position.y) * 0.08;
+    // Softer follow than the waypoints alone, so the object trails the scroll
+    // and settles rather than snapping to each target.
+    meshRef.current.position.x += (wx - meshRef.current.position.x) * 0.055;
+    meshRef.current.position.y += (wy - meshRef.current.position.y) * 0.055;
     const currentScale = meshRef.current.scale.x;
-    const newScale = currentScale + (ws - currentScale) * 0.08;
+    const newScale = currentScale + (ws - currentScale) * 0.055;
     meshRef.current.scale.setScalar(newScale);
   });
 
-  return <primitive ref={meshRef} object={hand} />;
+  return (
+    <>
+      {/* Standard material needs light; a cool key plus a warm rim keeps the
+          silhouette legible without flattening it. */}
+      <ambientLight intensity={0.55} />
+      <directionalLight position={[3, 4, 5]} intensity={1.6} color="#8fa4ff" />
+      <pointLight position={[-4, -2, 3]} intensity={26} distance={18} color="#3b5bff" />
+      <primitive ref={meshRef} object={object} />
+    </>
+  );
 }
 
 export default function Scroll3DElement() {
