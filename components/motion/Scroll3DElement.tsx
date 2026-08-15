@@ -47,33 +47,20 @@ function Scene({ scrollYProgress, scrollVelocity }: {
   const meshRef = useRef<THREE.Group>(null);
   const idleRotation = useRef({ x: 0, y: 0, z: 0 });
 
-  /* A single polished ring. Simple enough to stay out of the content's way,
-     curved enough to catch the light as it turns. */
+  /* A faceted icosahedron: one readable solid whose wireframe is a handful of
+     clean triangles, rather than a dense knot or a heavy ring. */
   const object = useMemo(() => {
-    // A drawn line, not a solid form. Mostly emissive so a hairline tube still
-    // registers, with just enough roughness to vary as it turns.
-    const material = new THREE.MeshStandardMaterial({
-      color: "#2440a8",
-      emissive: "#3b5bff",
-      emissiveIntensity: 0.75,
-      roughness: 0.45,
-      metalness: 0.3,
+    // Unlit wireframe — no lights needed, and the thin strokes keep it sitting
+    // behind the content instead of massing up against it.
+    const material = new THREE.MeshBasicMaterial({
+      color: "#3b5bff",
+      wireframe: true,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.38,
     });
 
-    // Hairline tube on a wide radius: the earlier 0.3 tube was what made it
-    // read as a heavy donut. Segment counts stay high so the circle is clean.
-    const geometry = new THREE.TorusGeometry(1.28, 0.038, 16, 220);
-
     const group = new THREE.Group();
-    // Inner rig holds the modelling scale so the outer group's scale stays
-    // free for the scroll waypoints to drive.
-    const rig = new THREE.Group();
-    // A wide thin circle carries more elegance than a small thick one.
-    rig.scale.setScalar(0.85);
-    rig.add(new THREE.Mesh(geometry, material));
-    group.add(rig);
+    group.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.45, 1), material));
     return group;
   }, []);
 
@@ -122,16 +109,7 @@ function Scene({ scrollYProgress, scrollVelocity }: {
     meshRef.current.scale.setScalar(newScale);
   });
 
-  return (
-    <>
-      {/* Standard material needs light; a cool key plus a warm rim keeps the
-          silhouette legible without flattening it. */}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[3, 4, 5]} intensity={0.8} color="#8fa4ff" />
-      <pointLight position={[-4, -2, 3]} intensity={10} distance={18} color="#3b5bff" />
-      <primitive ref={meshRef} object={object} />
-    </>
-  );
+  return <primitive ref={meshRef} object={object} />;
 }
 
 export default function Scroll3DElement() {
