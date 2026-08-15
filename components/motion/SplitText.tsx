@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useMemo, useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { EASE } from "../../lib/animations";
 
 type SplitTextProps = {
@@ -31,6 +31,12 @@ export default function SplitText({
   inView = false,
 }: SplitTextProps) {
   const reduce = useReducedMotion();
+  const ref = useRef<HTMLSpanElement>(null);
+  // Drive the reveal from `animate` rather than `whileInView`: variant labels
+  // set by whileInView do not propagate to the per-word children, so the masked
+  // words would sit at rest and never rise.
+  const seen = useInView(ref, { once: true, amount: 0.4 });
+  const state = !inView || seen ? "visible" : "hidden";
 
   const words = useMemo(() => text.split(" "), [text]);
 
@@ -49,11 +55,10 @@ export default function SplitText({
   if (reduce) {
     return (
       <motion.span
+        ref={ref}
         className={className}
         initial={{ opacity: 0 }}
-        {...(inView
-          ? { whileInView: { opacity: 1 }, viewport: { once: true } }
-          : { animate: { opacity: 1 } })}
+        animate={{ opacity: state === "visible" ? 1 : 0 }}
         transition={{ duration: 0.3 }}
       >
         {text}
@@ -63,12 +68,11 @@ export default function SplitText({
 
   return (
     <motion.span
+      ref={ref}
       className={className}
       variants={container}
       initial="hidden"
-      {...(inView
-        ? { whileInView: "visible", viewport: { once: true, amount: 0.4 } }
-        : { animate: "visible" })}
+      animate={state}
       aria-label={text}
       style={{ display: "inline-block" }}
     >

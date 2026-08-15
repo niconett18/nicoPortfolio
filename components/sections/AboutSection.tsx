@@ -27,7 +27,7 @@ import {
 import { FaJava } from "react-icons/fa";
 import ScrollReveal from "../motion/ScrollReveal";
 import ScrollHighlight from "../motion/ScrollHighlight";
-import { EASE, revealViewport, staggerContainer } from "../../lib/animations";
+import { EASE } from "../../lib/animations";
 
 const education = {
   degree: "B.Eng. in Computer Engineering",
@@ -117,7 +117,9 @@ function Section({
     <ScrollReveal className="sec page-section" yOffset={60}>
       <div className="sec-sticky-label">
         <p className="mono-label mono-label--accent">{label}</p>
-        <h2 className="sec-heading">{heading}</h2>
+        <h2 className="sec-heading">
+          <SplitText text={heading} mode="words" inView stagger={0.07} duration={1.1} />
+        </h2>
       </div>
       <div>{children}</div>
     </ScrollReveal>
@@ -129,18 +131,20 @@ export default function AboutSection({ standalone = false }: { standalone?: bool
     <div id="about" className="page-section">
       {standalone ? (
         <section className="page-head page-section">
-          <motion.p
-            className="mono-label mono-label--accent"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: { duration: 0.6, ease: EASE, delay: 0.5 } }}
-          >
-            About — Profile
-          </motion.p>
-          <h1 className="display-lg" style={{ marginTop: "1rem" }}>
-            <SplitText text="About" delay={0.55} />{" "}
-            <SplitText text="Me" delay={0.7} />
-            <span className="text-accent">.</span>
-          </h1>
+          <div className="sec-rule-block">
+            <motion.p
+              className="mono-label mono-label--accent"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.6, ease: EASE, delay: 0.5 } }}
+            >
+              About — Profile
+            </motion.p>
+            <h1 className="display-lg sec-rule-heading" style={{ marginTop: "1rem" }}>
+              <SplitText text="About" delay={0.55} />{" "}
+              <SplitText text="Me" delay={0.7} />
+              <span className="text-accent">.</span>
+            </h1>
+          </div>
           <motion.p
             className="lead"
             style={{ marginTop: "1.75rem", maxWidth: "34rem" }}
@@ -158,10 +162,13 @@ export default function AboutSection({ standalone = false }: { standalone?: bool
           whileInView={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } }}
           viewport={{ once: true, amount: 0.2 }}
         >
-          <p className="mono-label mono-label--accent">About — Profile</p>
-          <h2 className="sec-heading">
-            About Me<span className="text-accent">.</span>
-          </h2>
+          <div className="sec-rule-block">
+            <p className="mono-label mono-label--accent">About — Profile</p>
+            <h2 className="sec-heading sec-rule-heading">
+              <SplitText text="About Me" mode="words" inView stagger={0.07} duration={1.1} />
+              <span className="text-accent">.</span>
+            </h2>
+          </div>
           <p className="lead" style={{ marginTop: "1rem", maxWidth: "34rem" }}>
             Engineering scalable systems at the intersection of robust backend architecture
             and striking frontend execution. Minimalist by design, maximalist in performance.

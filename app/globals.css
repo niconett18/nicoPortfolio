@@ -1947,8 +1947,8 @@ button:hover .flip-inner {
 
 .sec {
   display: grid;
-  grid-template-columns: minmax(10rem, 18rem) minmax(0, 1fr);
-  gap: 2rem;
+  grid-template-columns: minmax(12rem, 20rem) minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 3.5rem);
   padding: clamp(2.5rem, 6vh, 4.5rem) var(--pad-x);
   border-top: 1px solid var(--hairline);
 }
@@ -2663,10 +2663,43 @@ button:hover .flip-inner {
   background: var(--hairline-strong);
 }
 
+/* Section labels sit against a vertical accent rule and hold their place in
+   view while the column beside them scrolls past. */
 .sec-sticky-label {
   position: sticky;
-  top: calc(var(--anchor-offset));
+  top: max(var(--anchor-offset), 24vh);
   align-self: start;
+  border-left: 3px solid var(--accent);
+  padding: 0.2rem 0 0.4rem clamp(0.9rem, 1.5vw, 1.5rem);
+}
+
+.sec-sticky-label .sec-heading {
+  font-size: clamp(1.9rem, 4.2vw, 3.4rem);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  max-width: 11ch;
+  margin-top: 0.8rem;
+}
+
+/* Same treatment for the section intro, which has no sticky column. */
+.sec-rule-block {
+  border-left: 3px solid var(--accent);
+  padding: 0.2rem 0 0.5rem clamp(0.9rem, 1.5vw, 1.5rem);
+  width: max-content;
+  max-width: 100%;
+}
+
+.sec-rule-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  max-width: 8ch;
+  margin-top: 0.9rem;
 }
 
 /* ============================================================
