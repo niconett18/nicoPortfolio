@@ -50,29 +50,28 @@ function Scene({ scrollYProgress, scrollVelocity }: {
   /* A single polished ring. Simple enough to stay out of the content's way,
      curved enough to catch the light as it turns. */
   const object = useMemo(() => {
-    // Polished rather than emissive-heavy: most of the glow should come from
-    // the lights raking across it, which is what makes metal read as metal.
+    // A drawn line, not a solid form. Mostly emissive so a hairline tube still
+    // registers, with just enough roughness to vary as it turns.
     const material = new THREE.MeshStandardMaterial({
-      color: "#16205e",
+      color: "#2440a8",
       emissive: "#3b5bff",
-      emissiveIntensity: 0.22,
-      roughness: 0.2,
-      metalness: 0.88,
+      emissiveIntensity: 0.75,
+      roughness: 0.45,
+      metalness: 0.3,
       transparent: true,
-      // Restrained on purpose: it should register as depth behind the content,
-      // never compete with it.
-      opacity: 0.4,
+      opacity: 0.5,
     });
 
-    // High segment counts: the premium read comes from an unfaceted
-    // silhouette, which is exactly what the earlier low-poly passes lacked.
-    const geometry = new THREE.TorusGeometry(1.15, 0.3, 48, 160);
+    // Hairline tube on a wide radius: the earlier 0.3 tube was what made it
+    // read as a heavy donut. Segment counts stay high so the circle is clean.
+    const geometry = new THREE.TorusGeometry(1.28, 0.038, 16, 220);
 
     const group = new THREE.Group();
     // Inner rig holds the modelling scale so the outer group's scale stays
     // free for the scroll waypoints to drive.
     const rig = new THREE.Group();
-    rig.scale.setScalar(0.5);
+    // A wide thin circle carries more elegance than a small thick one.
+    rig.scale.setScalar(0.85);
     rig.add(new THREE.Mesh(geometry, material));
     group.add(rig);
     return group;
@@ -127,9 +126,9 @@ function Scene({ scrollYProgress, scrollVelocity }: {
     <>
       {/* Standard material needs light; a cool key plus a warm rim keeps the
           silhouette legible without flattening it. */}
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[3, 4, 5]} intensity={1.6} color="#8fa4ff" />
-      <pointLight position={[-4, -2, 3]} intensity={26} distance={18} color="#3b5bff" />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[3, 4, 5]} intensity={0.8} color="#8fa4ff" />
+      <pointLight position={[-4, -2, 3]} intensity={10} distance={18} color="#3b5bff" />
       <primitive ref={meshRef} object={object} />
     </>
   );
