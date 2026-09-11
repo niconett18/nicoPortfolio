@@ -1,45 +1,92 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { motion, useMotionValue, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import type { Project } from "../../lib/projects";
+import useMediaQuery from "../../lib/useMediaQuery";
 
-/* Lazy screenshot — same mShots source the grid used, with a wide horizontal
-   root margin so cards load before the track slides them into view. */
-function CardShot({ url, alt }: { url: string; alt: string }) {
+/* Resolves once the window `load` event has fired, so card media never
+   competes with the hero for bandwidth on first paint. */
+function subscribeToLoad(onStoreChange: () => void) {
+  window.addEventListener("load", onStoreChange);
+  return () => window.removeEventListener("load", onStoreChange);
+}
+
+function usePageLoaded() {
+  return useSyncExternalStore(
+    subscribeToLoad,
+    () => document.readyState === "complete",
+    () => false,
+  );
+}
+
+/* Card media: skeleton until the page has fully loaded, then the static
+   screenshot fades in. Projects with a `video` autoplay it muted and looping
+   while the card is near the viewport, and pause it once it scrolls away.
+   Projects without a stored screenshot fall back to mShots. */
+function CardMedia({ project }: { project: Project }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const pageLoaded = usePageLoaded();
+  const [near, setNear] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
+  // Wide horizontal root margin so cards load before the track slides them in.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { rootMargin: "200px 800px" }
-    );
+    const io = new IntersectionObserver(([entry]) => setNear(entry.isIntersecting), {
+      rootMargin: "200px 800px",
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
 
+  const showVideo = Boolean(project.video) && pageLoaded && !reducedMotion;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (near) {
+      // Autoplay can still be refused (e.g. data saver); the poster stays up.
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [near, showVideo]);
+
+  const src =
+    project.image ?? `https://s0.wp.com/mshots/v1/${encodeURIComponent(project.url)}?w=1440`;
+
   return (
     <span ref={ref} className="showcase-card-media-inner">
-      {visible && (
+      {pageLoaded && (near || imgLoaded) && (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
-          src={`https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=1440`}
-          alt={alt}
-          onLoad={() => setLoaded(true)}
-          className="showcase-card-img"
+          src={src}
+          alt={project.imageAlt}
+          decoding="async"
+          onLoad={() => setImgLoaded(true)}
+          className={`showcase-card-img${imgLoaded ? " is-loaded" : ""}`}
         />
       )}
-      {!loaded && <span className="showcase-card-skeleton" />}
+      {showVideo && (
+        <video
+          ref={videoRef}
+          src={project.video}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          onPlaying={() => setVideoReady(true)}
+          className={`showcase-card-img showcase-card-video${videoReady ? " is-loaded" : ""}`}
+        />
+      )}
+      {!imgLoaded && <span className="showcase-card-skeleton" />}
     </span>
   );
 }
@@ -53,7 +100,8 @@ function ShowcaseCard({ project, onOpen }: { project: Project; onOpen: () => voi
         onClick={onOpen}
         aria-label={`Open ${project.name} details`}
       >
-        <CardShot url={project.url} alt={project.imageAlt} />
+        <CardMedia project={project} />
+        <span className="showcase-card-badge">{project.status}</span>
         <span className="showcase-card-arrow" aria-hidden="true">
           <ArrowUpRight />
         </span>

@@ -76,6 +76,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const clientCount = projects.filter((p) => p.type === "Client").length;
+  const soloCount = projects.filter((p) => !p.team).length;
 
   useScrollLock(Boolean(selectedProject));
 
@@ -123,7 +124,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: 0.7, ease: EASE, delay: 0.85 } }}
             >
-              {projects.length} projects · {clientCount} client builds · all shipped solo
+              {projects.length} projects · {clientCount} client builds · {soloCount} shipped solo
             </motion.p>
           </section>
         ) : (
@@ -138,7 +139,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
               Projects<span className="text-accent">.</span>
             </h2>
             <p className="mono-label projects-head-meta">
-              {projects.length} projects · {clientCount} client builds · all shipped solo
+              {projects.length} projects · {clientCount} client builds · {soloCount} shipped solo
             </p>
           </motion.div>
         )}
@@ -214,7 +215,21 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                   </a>
                 </div>
                 <div className="project-modal-preview-scroll" data-lenis-prevent>
-                  <ModalPreview url={selectedProject.url} title={selectedProject.imageAlt} />
+                  {selectedProject.video ? (
+                    <video
+                      src={selectedProject.video}
+                      poster={selectedProject.image}
+                      title={selectedProject.imageAlt}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      controls
+                      className="project-modal-video"
+                    />
+                  ) : (
+                    <ModalPreview url={selectedProject.url} title={selectedProject.imageAlt} />
+                  )}
                 </div>
               </div>
 
@@ -263,7 +278,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                     rel="noopener noreferrer"
                     className="btn btn--accent"
                   >
-                    View live site
+                    {selectedProject.video ? "Play the game" : "View live site"}
                     <ExternalLink size={14} />
                   </MagneticButton>
                   <MagneticButton type="button" className="btn" onClick={() => setSelectedProject(null)}>
