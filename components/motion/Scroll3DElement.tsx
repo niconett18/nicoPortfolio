@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useScroll, useSpring, useMotionValueEvent, MotionValue } from "framer-motion";
+import { useScroll, useSpring, MotionValue } from "framer-motion";
 import * as THREE from "three";
 
 /* ── Waypoints ──────────────────────────────────────────────────
@@ -40,10 +40,7 @@ function lerpWaypoints(progress: number): [number, number, number] {
   return WAYPOINTS[WAYPOINTS.length - 1][1];
 }
 
-function Scene({ scrollYProgress, scrollVelocity }: {
-  scrollYProgress: MotionValue<number>;
-  scrollVelocity: MotionValue<number>;
-}) {
+function Scene({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
   const meshRef = useRef<THREE.Group>(null);
   const idleRotation = useRef({ x: 0, y: 0, z: 0 });
 
@@ -80,7 +77,9 @@ function Scene({ scrollYProgress, scrollVelocity }: {
     if (!meshRef.current) return;
 
     const progress = scrollYProgress.get();
-    const velocity = scrollVelocity.get();
+    // Read the spring's own velocity (progress/sec, scaled to the old
+    // per-frame units) instead of tracking it on every scroll event.
+    const velocity = scrollYProgress.getVelocity() * 16.7;
 
     // ── Idle auto-rotation (always spinning slowly) ──
     const idleSpeed = 0.09;
@@ -122,16 +121,6 @@ export default function Scroll3DElement() {
     restDelta: 0.001,
   });
 
-  // Track scroll velocity for rotation speed boost
-  const prevProgress = useRef(0);
-  const velocityMotion = useSpring(0, { stiffness: 100, damping: 20 });
-
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    const vel = (latest - prevProgress.current) * 1000;
-    prevProgress.current = latest;
-    velocityMotion.set(vel);
-  });
-
   return (
     <div
       className="scroll-3d-container"
@@ -148,14 +137,11 @@ export default function Scroll3DElement() {
     >
       <Canvas
         camera={{ position: [0, 0, 7], fov: 45 }}
-        dpr={[1, 1.5]}
+        dpr={1}
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
       >
-        <Scene
-          scrollYProgress={smoothProgress}
-          scrollVelocity={velocityMotion}
-        />
+        <Scene scrollYProgress={smoothProgress} />
       </Canvas>
     </div>
   );

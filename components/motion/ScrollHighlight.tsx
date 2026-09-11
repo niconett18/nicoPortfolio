@@ -42,7 +42,7 @@ export default function ScrollHighlight({
     <motion.div
       ref={ref}
       className={className}
-      style={{ opacity, y, willChange: "opacity, transform" }}
+      style={{ opacity, y }}
     >
       {children}
     </motion.div>

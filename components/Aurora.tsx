@@ -132,10 +132,13 @@ export default function Aurora(props: AuroraProps) {
     const ctn = ctnDom.current;
     if (!ctn) return;
 
+    // A soft full-screen gradient: half resolution is indistinguishable and
+    // quarters the fragment work; MSAA buys nothing on a single triangle.
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
-      antialias: true
+      antialias: false,
+      dpr: 0.5,
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -182,22 +185,34 @@ export default function Aurora(props: AuroraProps) {
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let stopsKey = colorStops.join();
+
+    // The aurora drifts slowly, so ~30fps looks identical and halves the
+    // per-frame cost that scrolling has to share. The 4ms slack keeps the
+    // cadence an even every-other-frame at 60Hz instead of jittering.
+    const FRAME_MS = 1000 / 30 - 4;
+    let lastRender = -Infinity;
     let animateId = 0;
     const update = (t: number) => {
-      if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        animateId = requestAnimationFrame(update);
-        return;
-      }
       animateId = requestAnimationFrame(update);
+      if (document.hidden || reduceMotion.matches) return;
+      if (t - lastRender < FRAME_MS) return;
+      lastRender = t;
+
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
       program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
       const stops = propsRef.current.colorStops ?? colorStops;
-      program.uniforms.uColorStops.value = stops.map(hex => {
-        const c = new Color(hex);
-        return [c.r, c.g, c.b];
-      });
+      const key = stops.join();
+      if (key !== stopsKey) {
+        stopsKey = key;
+        program.uniforms.uColorStops.value = stops.map(hex => {
+          const c = new Color(hex);
+          return [c.r, c.g, c.b];
+        });
+      }
       renderer.render({ scene: mesh });
     };
     animateId = requestAnimationFrame(update);
