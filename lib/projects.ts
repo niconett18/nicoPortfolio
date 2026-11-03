@@ -3,9 +3,11 @@ export type Project = {
   name: string;
   /** Live site or demo. Omit for work that has nothing to visit (e.g. lab builds). */
   url?: string;
+  /** Label for the modal's primary button. Defaults to "Play the game" with a video, else "View live site". */
+  linkLabel?: string;
   desc: string;
   role: string;
-  type: 'Client' | 'Personal' | 'Community' | 'Academic';
+  type: 'Client' | 'Personal' | 'Community' | 'Academic' | 'Hackathon';
   status: 'Deployed' | 'Completed';
   year: string;
   stack: string[];
@@ -40,6 +42,29 @@ export const projects: Project[] = [
     ],
     featured: true,
     imageAlt: 'ClariPet live website preview',
+  },
+  {
+    id: 11,
+    name: 'Rimula Agents',
+    url: 'https://github.com/davidalexander24/rimula-agents',
+    linkLabel: 'View on GitHub',
+    desc: 'AI co-pilot for skincare formulation R&D, built in 24 hours at UI Hackathon Incubate 2026 for the PT Paragon Technology and Innovation challenge. Given a product brief, it proposes the next formulas to test, estimates the chance each one meets every spec, checks them against ingredient, regulatory, and halal-sourcing rules, attaches literature and real-product evidence, and retrains after every lab result. A local Qwen3 orchestrator drives the agents, so formulation data never leaves the machine.',
+    role: 'Team Lead · AI Safety & Ops',
+    type: 'Hackathon',
+    status: 'Completed',
+    year: '2026',
+    stack: ['Python', 'FastAPI', 'scikit-learn', 'Qwen3 · llama.cpp', 'React', 'TypeScript'],
+    highlights: [
+      'Top 10 of 30 finalist teams at UI Hackathon Incubate 2026, out of 78 teams registered',
+      'Led the team and built the Guardian rule engine: ingredient limits, regulatory checks, and halal-sourcing flags on every proposed formula',
+      'Built the Scout evidence agent on Europe PMC literature and Open Beauty Facts products; ran the server release, live demo, and pitch deck',
+      'Gaussian-process Bayesian optimization reached an all-spec formula in a median 2 to 3 batches, 62 to 78% fewer than random search',
+    ],
+    featured: true,
+    imageAlt: 'Rimula Agents formulation dashboard demo',
+    image: '/projects/rimula-poster.jpg',
+    video: '/projects/rimula.mp4',
+    team: 'Team of 4 · Codingbang',
   },
   {
     id: 1,

@@ -295,7 +295,8 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                       rel="noopener noreferrer"
                       className="btn btn--accent"
                     >
-                      {selectedProject.video ? "Play the game" : "View live site"}
+                      {selectedProject.linkLabel ??
+                        (selectedProject.video ? "Play the game" : "View live site")}
                       <ExternalLink size={14} />
                     </MagneticButton>
                   )}

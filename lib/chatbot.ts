@@ -57,6 +57,7 @@ function getProjectSummary(): string {
   const personal = projects.filter((p) => p.type === "Personal").length;
   const community = projects.filter((p) => p.type === "Community").length;
   const academic = projects.filter((p) => p.type === "Academic").length;
+  const hackathon = projects.filter((p) => p.type === "Hackathon").length;
   const solo = projects.filter((p) => !p.team).length;
   const techCounts = new Map<string, number>();
   for (const tech of projects.flatMap((p) => p.stack)) {
@@ -74,8 +75,8 @@ function getProjectSummary(): string {
 
   return (
     `Nicholas has built **${projects.length} projects** overall — ${client} client websites, ` +
-    `${personal} personal concept builds, ${community} community project, and ${academic} academic ` +
-    `projects. ${solo} of them were designed, developed, and deployed end to end as solo builds.\n\n` +
+    `${personal} personal concept builds, ${community} community project, ${academic} academic ` +
+    `projects, and ${hackathon} hackathon build (a top 10 finalist). ${solo} of them were designed, developed, and deployed end to end as solo builds.\n\n` +
     `His core stack across projects is ${techs}, and he manages the full lifecycle from requirements ` +
     `through deployment and hosting.\n\n` +
     `Three of his standout client projects are ${topClients.slice(0, -1).join(", ")}, ` +
