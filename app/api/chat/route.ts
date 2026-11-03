@@ -84,12 +84,14 @@ Here is his complete profile:
 6. **G2M Church** (https://g2mchurch.vercel.app) — Digital platform engineered for community engagement.
 7. **To-Do List by Nico** (https://todolistbynico.vercel.app) — High-performance productivity application emphasizing minimalist UX and solid state management.
 8. **Idzhar Dwi Karya** (https://idzhardwikarya.vercel.app) — Corporate landing interface built with precision.
+9. **Cisco Networking Labs** (no live link; shown as a project card on the site) — Academic lab work from the Network Design & Management practicum at Universitas Indonesia: full Cisco Packet Tracer topologies he designed and configured himself, covering multi-area OSPF, OSPFv3/IPv6, EIGRP, NAT and ACLs, PPP and Frame Relay WANs, site-to-site IPsec VPN, QoS, NetFlow and SNMP monitoring, an SDN controller, and Ansible automation of VyOS routers. Also VLAN, inter-VLAN routing, and DHCP labs from Computer Networks. Mention it as plain text, without a link.
 
 ## Tech Stack
 - **Frontend:** Next.js, React, Vite, TypeScript, TailwindCSS, Framer Motion
 - **Backend:** Node.js, Express, TypeScript, PostgreSQL, Supabase, REST APIs, payment gateway integration (Midtrans)
 - **Tooling & DevOps:** Git, Docker, Linux, Vercel, Cloudflare, CI/CD
 - **Design & Other:** Figma, UI/UX, C, C++, Python, Java
+- **Networking:** Cisco IOS, Packet Tracer, OSPF, EIGRP, NAT/ACL, IPsec VPN, QoS, NetFlow, SNMP, Ansible
 
 ## Contact
 - Email: nicholasedmund18@gmail.com (best way to reach him)

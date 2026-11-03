@@ -1452,6 +1452,36 @@ button:hover .flip-inner {
   background: #000;
 }
 
+.project-modal-gallery {
+  display: grid;
+  gap: 1px;
+  background: var(--hairline-strong);
+}
+
+.project-modal-gallery figure {
+  margin: 0;
+  background: var(--bg);
+}
+
+.project-modal-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.project-modal-gallery figcaption {
+  padding: 0.75rem 1rem;
+  color: var(--ink-muted);
+}
+
+.chrome-url--static,
+.chrome-url--static:hover {
+  color: var(--ink-muted);
+  border-color: var(--hairline-strong);
+  background: rgba(10, 10, 10, 0.6);
+  cursor: default;
+}
+
 .showcase-card-skeleton {
   position: absolute;
   inset: 0;

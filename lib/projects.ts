@@ -1,7 +1,8 @@
 export type Project = {
   id: number;
   name: string;
-  url: string;
+  /** Live site or demo. Omit for work that has nothing to visit (e.g. lab builds). */
+  url?: string;
   desc: string;
   role: string;
   type: 'Client' | 'Personal' | 'Community' | 'Academic';
@@ -15,6 +16,8 @@ export type Project = {
   image?: string;
   /** Muted looping preview the card autoplays in place of the screenshot. */
   video?: string;
+  /** Screenshots shown in the modal when there is no live site or video to preview. */
+  gallery?: { src: string; caption: string }[];
   /** Set for team builds; anything without it was shipped solo. */
   team?: string;
 };
@@ -115,6 +118,31 @@ export const projects: Project[] = [
     image: '/projects/yusurg-poster.jpg',
     video: '/projects/yusurg.mp4',
     team: 'Team of 4 · Kelompok 25',
+  },
+  {
+    id: 10,
+    name: 'Cisco Networking Labs',
+    desc: 'Enterprise network builds from the Network Design & Management practicum at Universitas Indonesia. Each case study is a full Cisco Packet Tracer topology, designed, addressed, configured, and verified solo, from multi-area OSPF up to IPsec VPNs and Ansible-driven automation. The set also includes VLAN, inter-VLAN routing, and DHCP labs from the Computer Networks course.',
+    role: 'Network Engineering',
+    type: 'Academic',
+    status: 'Completed',
+    year: '2026',
+    stack: ['Cisco IOS', 'Packet Tracer', 'OSPF', 'EIGRP', 'IPsec VPN', 'QoS', 'NetFlow', 'SNMP', 'Ansible', 'VyOS'],
+    highlights: [
+      'Routing: multi-area OSPFv2, OSPFv3 with SLAAC on IPv6, and EIGRP across multi-site WANs',
+      'Security: static NAT, extended ACL policies, and site-to-site IPsec tunnels verified with show crypto ipsec sa',
+      'WAN and traffic control: PPP and Frame Relay links, plus class-based QoS for SSH, HTTP, and voice traffic',
+      'Operations: NetFlow and SNMP monitoring, an SDN network controller, and Ansible playbooks configuring VyOS routers',
+    ],
+    featured: true,
+    imageAlt: 'Cisco Packet Tracer topology of a site-to-site IPsec VPN',
+    image: '/projects/cisco-networking-labs.webp',
+    gallery: [
+      { src: '/projects/cisco/vpn-ipsec.webp', caption: 'Site-to-site IPsec VPN between two branches across a WAN core' },
+      { src: '/projects/cisco/ospf.webp', caption: 'Six-router multi-area OSPF ring with redundant serial links' },
+      { src: '/projects/cisco/nat-acl.webp', caption: 'Multi-site WAN with static NAT and DNS/DHCP services' },
+      { src: '/projects/cisco/netflow.webp', caption: 'NetFlow monitoring that traces an ACL-blocked intruder' },
+    ],
   },
   {
     id: 4,

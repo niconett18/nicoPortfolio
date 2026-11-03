@@ -195,27 +195,43 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                     <i />
                     <i />
                   </span>
-                  <a
-                    href={selectedProject.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="chrome-url"
-                    title={`Visit ${selectedProject.name} live website`}
-                  >
-                    {domainOf(selectedProject.url)}
-                  </a>
-                  <a
-                    href={selectedProject.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="chrome-open"
-                    aria-label={`Open ${selectedProject.name} in new tab`}
-                  >
-                    <ExternalLink size={13} />
-                  </a>
+                  {selectedProject.url ? (
+                    <>
+                      <a
+                        href={selectedProject.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chrome-url"
+                        title={`Visit ${selectedProject.name} live website`}
+                      >
+                        {domainOf(selectedProject.url)}
+                      </a>
+                      <a
+                        href={selectedProject.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="chrome-open"
+                        aria-label={`Open ${selectedProject.name} in new tab`}
+                      >
+                        <ExternalLink size={13} />
+                      </a>
+                    </>
+                  ) : (
+                    <span className="chrome-url chrome-url--static">{selectedProject.stack[0]}</span>
+                  )}
                 </div>
                 <div className="project-modal-preview-scroll" data-lenis-prevent>
-                  {selectedProject.video ? (
+                  {selectedProject.gallery && !selectedProject.url ? (
+                    <div className="project-modal-gallery">
+                      {selectedProject.gallery.map((shot) => (
+                        <figure key={shot.src}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={shot.src} alt={shot.caption} loading="lazy" decoding="async" />
+                          <figcaption className="mono-label">{shot.caption}</figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  ) : selectedProject.video ? (
                     <video
                       src={selectedProject.video}
                       poster={selectedProject.image}
@@ -227,9 +243,9 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                       controls
                       className="project-modal-video"
                     />
-                  ) : (
+                  ) : selectedProject.url ? (
                     <ModalPreview url={selectedProject.url} title={selectedProject.imageAlt} />
-                  )}
+                  ) : null}
                 </div>
               </div>
 
@@ -272,15 +288,17 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                   </ul>
                 </motion.div>
                 <motion.div variants={modalItem} className="project-modal-actions">
-                  <MagneticButton
-                    href={selectedProject.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn--accent"
-                  >
-                    {selectedProject.video ? "Play the game" : "View live site"}
-                    <ExternalLink size={14} />
-                  </MagneticButton>
+                  {selectedProject.url && (
+                    <MagneticButton
+                      href={selectedProject.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn--accent"
+                    >
+                      {selectedProject.video ? "Play the game" : "View live site"}
+                      <ExternalLink size={14} />
+                    </MagneticButton>
+                  )}
                   <MagneticButton type="button" className="btn" onClick={() => setSelectedProject(null)}>
                     Close
                   </MagneticButton>

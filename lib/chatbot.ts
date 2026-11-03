@@ -1,4 +1,7 @@
-import { projects } from "./projects";
+import { projects, type Project } from "./projects";
+
+/** Markdown link to a project, or just its name when it has no URL. */
+const projectLink = (p: Project) => (p.url ? `[${p.name}](${p.url})` : p.name);
 
 const name = "Nicholas Edmund Tanaka";
 const title = "Fullstack Developer / Computer Engineering student";
@@ -67,12 +70,12 @@ function getProjectSummary(): string {
   const topClients = projects
     .filter((p) => p.type === "Client")
     .slice(0, 3)
-    .map((p) => `**[${p.name}](${p.url})**`);
+    .map((p) => `**${projectLink(p)}**`);
 
   return (
     `Nicholas has built **${projects.length} projects** overall — ${client} client websites, ` +
     `${personal} personal concept builds, ${community} community project, and ${academic} academic ` +
-    `team project. ${solo} of them were designed, developed, and deployed end to end as solo builds.\n\n` +
+    `projects. ${solo} of them were designed, developed, and deployed end to end as solo builds.\n\n` +
     `His core stack across projects is ${techs}, and he manages the full lifecycle from requirements ` +
     `through deployment and hosting.\n\n` +
     `Three of his standout client projects are ${topClients.slice(0, -1).join(", ")}, ` +
@@ -110,7 +113,7 @@ function getExperienceResponse(): string {
 
 function getProjectDetail(project: (typeof projects)[0]): string {
   return (
-    `**[${project.name}](${project.url})** — ${project.desc}\n\n` +
+    `**${projectLink(project)}** — ${project.desc}\n\n` +
     `**Role:** ${project.role}  \n**Type:** ${project.type}  \n**Year:** ${project.year}\n\n` +
     `**Stack:** ${project.stack.join(", ")}\n\n` +
     `**Highlights:**\n` +
@@ -187,7 +190,7 @@ export function respond(userMessage: string): string {
     );
     if (usingProjects.length > 0) {
       const projectLinks = usingProjects
-        .map((p) => `[${p.name}](${p.url})`)
+        .map(projectLink)
         .join(", ");
       return (
         `Nicholas uses **${tech}** in projects like ${projectLinks}. ` +

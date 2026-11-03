@@ -59,7 +59,7 @@ function CardMedia({ project }: { project: Project }) {
   }, [near, showVideo]);
 
   const src =
-    project.image ?? `https://s0.wp.com/mshots/v1/${encodeURIComponent(project.url)}?w=1440`;
+    project.image ?? `https://s0.wp.com/mshots/v1/${encodeURIComponent(project.url ?? "")}?w=1440`;
 
   return (
     <span ref={ref} className="showcase-card-media-inner">
