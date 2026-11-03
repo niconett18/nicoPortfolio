@@ -98,6 +98,9 @@ function ProjectRow({ project, onOpen }: { project: Project; onOpen: (p: Project
               ) : (
                 <Globe size={17} strokeWidth={1.75} />
               )}
+              <span className="icon-btn-label" aria-hidden="true">
+                {isGithub(project.url) ? "Source" : "Visit site"}
+              </span>
             </a>
           )}
           <button
@@ -112,6 +115,9 @@ function ProjectRow({ project, onOpen }: { project: Project; onOpen: (p: Project
             ) : (
               <Maximize2 size={16} strokeWidth={1.75} />
             )}
+            <span className="icon-btn-label" aria-hidden="true">
+              {hasDemo ? "Watch demo" : "Details"}
+            </span>
           </button>
         </div>
       </div>
