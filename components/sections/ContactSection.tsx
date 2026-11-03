@@ -1,106 +1,107 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { fadeUp } from "../../lib/animations";
-import SplitText from "../motion/SplitText";
-import ScrollReveal from "../motion/ScrollReveal";
-import ScrollHighlight from "../motion/ScrollHighlight";
+import { useEffect, useRef, useState } from "react";
+import { Check, Copy, Mail, MessageCircle } from "lucide-react";
+import { SiGithub, SiInstagram } from "react-icons/si";
+import { openChat } from "../../lib/chatEvents";
+import { profile, socials } from "../../lib/profile";
+import FadeIn from "../motion/FadeIn";
+import JakartaClock from "../ui/JakartaClock";
 
-function JakartaTime() {
-  const [time, setTime] = useState("");
+const ICONS = {
+  Email: Mail,
+  GitHub: SiGithub,
+  Instagram: SiInstagram,
+} as const;
 
-  useEffect(() => {
-    const formatter = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Jakarta",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    const tick = () => setTime(formatter.format(new Date()));
-    tick();
-    const id = setInterval(tick, 10_000);
-    return () => clearInterval(id);
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
   }, []);
 
-  return <span suppressHydrationWarning>{time || "--:--"} WIB</span>;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Clipboard can be blocked (insecure context, permissions); the link still works.
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className="icon-btn"
+      onClick={copy}
+      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      title={copied ? "Copied" : "Copy"}
+    >
+      {copied ? <Check size={15} strokeWidth={1.75} /> : <Copy size={15} strokeWidth={1.75} />}
+    </button>
+  );
 }
 
 export default function ContactSection({ standalone = false }: { standalone?: boolean }) {
+  const Heading = standalone ? "h1" : "h2";
+
   return (
-    <div id="contact" className="contact-wrap page-section">
-      <ScrollReveal className="contact-main" yOffset={50}>
-        <motion.p variants={fadeUp} className="mono-label mono-label--accent">
-          Contact — Open to work
-        </motion.p>
-
-        {standalone ? (
-          <h1 className="display-lg" style={{ marginTop: "1rem" }}>
-            <SplitText text="Let's build" inView mode="words" />
-            <br />
-            <SplitText text="something" inView mode="words" />{" "}
-            <span className="text-outline">
-              <SplitText text="exceptional" inView mode="words" />
+    <section id="contact" className="section section--contact">
+      <div className="container contact-grid">
+        <FadeIn className="contact-main">
+          <Heading className="sec-title">Let&apos;s Connect</Heading>
+          <p className="contact-lead">
+            Open to collaborations, internships, and interesting product work. Drop a line — I
+            usually reply within a day.
+          </p>
+          <div className="contact-actions">
+            <a href={`mailto:${profile.email}`} className="btn btn--solid">
+              <Mail size={15} strokeWidth={1.75} aria-hidden="true" />
+              Send an Email
+            </a>
+            <button type="button" className="btn btn--ghost" onClick={openChat}>
+              <MessageCircle size={15} strokeWidth={1.75} aria-hidden="true" />
+              Ask my AI assistant
+            </button>
+          </div>
+          <p className="contact-where">
+            <span className="status">
+              <span className="status-dot" aria-hidden="true" />
+              {profile.status}
             </span>
-            <span className="text-accent">.</span>
-          </h1>
-        ) : (
-          <motion.h2 variants={fadeUp} className="sec-heading" style={{ marginTop: "1rem" }}>
-            Let&apos;s build something{" "}
-            <span className="text-outline">exceptional</span>
-            <span className="text-accent">.</span>
-          </motion.h2>
-        )}
+            <span className="contact-where-sep" aria-hidden="true">·</span>
+            <span>
+              {profile.location}, <JakartaClock className="clock clock--inline" />
+            </span>
+          </p>
+        </FadeIn>
 
-        <motion.p variants={fadeUp} className="lead" style={{ marginTop: "1.75rem" }}>
-          Open to collaborations, internships, and interesting product work. Drop a line —
-          I usually reply within a day.
-        </motion.p>
-
-        <motion.div variants={fadeUp}>
-          <a href="mailto:nicholasedmund18@gmail.com" className="contact-email">
-            nicholasedmund18@gmail.com
-          </a>
-        </motion.div>
-      </ScrollReveal>
-
-      <ScrollReveal className="contact-meta" yOffset={40}>
-        <ScrollHighlight>
-          <motion.div variants={fadeUp} className="contact-meta-cell">
-            <h3 className="mono-label">Location</h3>
-            <p>Jakarta, Indonesia</p>
-            <p style={{ color: "var(--ink-faint)", fontSize: "0.85rem", marginTop: "0.3rem" }}>
-              <JakartaTime />
-            </p>
-          </motion.div>
-        </ScrollHighlight>
-        <ScrollHighlight>
-          <motion.div variants={fadeUp} className="contact-meta-cell">
-            <h3 className="mono-label">Socials</h3>
-            <div className="contact-meta-links">
-              <a href="https://github.com/niconett18" target="_blank" rel="noopener noreferrer">
-                GitHub ↗
-              </a>
-              <a
-                href="https://www.instagram.com/niconet18/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Instagram ↗
-              </a>
-            </div>
-          </motion.div>
-        </ScrollHighlight>
-        <ScrollHighlight>
-          <motion.div variants={fadeUp} className="contact-meta-cell">
-            <h3 className="mono-label">Status</h3>
-            <p className="status-chip">
-              <span className="status-chip-dot" aria-hidden="true" />
-              Available for freelance &amp; internships
-            </p>
-          </motion.div>
-        </ScrollHighlight>
-      </ScrollReveal>
-    </div>
+        <FadeIn className="contact-links" delay={0.08}>
+          <ul>
+            {socials.map((s) => {
+              const Icon = ICONS[s.label];
+              return (
+                <li key={s.label} className="contact-link">
+                  <Icon className="contact-link-icon" aria-hidden="true" />
+                  <a
+                    href={s.href}
+                    {...(s.href.startsWith("http")
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
+                    {s.value}
+                  </a>
+                  <CopyButton value={s.value} label={s.label} />
+                </li>
+              );
+            })}
+          </ul>
+        </FadeIn>
+      </div>
+    </section>
   );
 }

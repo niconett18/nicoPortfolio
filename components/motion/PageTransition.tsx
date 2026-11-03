@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import useReducedMotion from "../../lib/useReducedMotion";
 import { EASE } from "../../lib/animations";
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -26,53 +27,41 @@ export default function PageTransition({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const reduce = useReducedMotion();
 
-  if (reduce) {
-    return (
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
+  // Keep one tree shape for both modes: swapping wrappers would remount the
+  // page (and break hydration when the preference flips after first paint).
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={pathname}>
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.7, ease: EASE, delay: 0.45 },
-          }}
-          exit={{ opacity: 1 }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24 }}
+          animate={
+            reduce
+              ? { opacity: 1, transition: { duration: 0.25 } }
+              : { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay: 0.45 } }
+          }
+          exit={reduce ? { opacity: 0, transition: { duration: 0.25 } } : { opacity: 1 }}
         >
           {children}
         </motion.div>
 
-        {/* accent wipe panel */}
-        <motion.div
-          className="wipe"
-          initial={{ y: "0%" }}
-          animate={{ y: "-100%", transition: { duration: 0.7, ease: EASE, delay: 0.25 } }}
-          exit={{ y: ["100%", "0%"], transition: { duration: 0.5, ease: EASE } }}
-        >
-          <motion.span
-            className="wipe-label"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 0, transition: { duration: 0.3, delay: 0.3 } }}
-            exit={{ opacity: 0 }}
+        {/* accent wipe panel (trailing sibling, so dropping it never remounts the page) */}
+        {!reduce && (
+          <motion.div
+            className="wipe"
+            initial={{ y: "0%" }}
+            animate={{ y: "-100%", transition: { duration: 0.7, ease: EASE, delay: 0.25 } }}
+            exit={{ y: ["100%", "0%"], transition: { duration: 0.5, ease: EASE } }}
           >
-            {routeLabel(pathname)}
-          </motion.span>
-        </motion.div>
+            <motion.span
+              className="wipe-label"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0, transition: { duration: 0.3, delay: 0.3 } }}
+              exit={{ opacity: 0 }}
+            >
+              {routeLabel(pathname)}
+            </motion.span>
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );

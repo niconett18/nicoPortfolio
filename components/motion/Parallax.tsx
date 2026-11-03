@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import useReducedMotion from "../../lib/useReducedMotion";
 
 type ParallaxProps = {
   children: React.ReactNode;
@@ -30,12 +31,12 @@ export default function Parallax({
     offset: ["start end", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [travel / 2, -travel / 2]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, scaleTo]);
-
-  if (reduce) {
-    return <div className={className}>{children}</div>;
-  }
+  // Reduced motion flattens the ranges instead of swapping to a plain <div>:
+  // the ref must stay attached or useScroll throws "Target ref is defined
+  // but not hydrated".
+  const half = reduce ? 0 : travel / 2;
+  const y = useTransform(scrollYProgress, [0, 1], [half, -half]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, reduce ? 1 : scaleTo]);
 
   return (
     <motion.div ref={ref} className={className} style={{ y, scale }}>

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef } from "react";
-import { MotionValue, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { MotionValue, motion, useScroll, useTransform } from "framer-motion";
+import useReducedMotion from "../../lib/useReducedMotion";
 import useMediaQuery from "../../lib/useMediaQuery";
 
 type ContainerScrollProps = {

@@ -1,323 +1,206 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ExternalLink, X } from "lucide-react";
-import MagneticButton from "../motion/MagneticButton";
-import ProjectsShowcase from "./ProjectsShowcase";
-import { EASE, modalContentStagger, modalItem, modalPanel } from "../../lib/animations";
+import { useCallback, useId, useMemo, useState } from "react";
+import { Code2, Globe, Maximize2, Play, Search } from "lucide-react";
 import { projects, type Project } from "../../lib/projects";
-import { useScrollLock } from "../../lib/useScrollLock";
+import FadeIn from "../motion/FadeIn";
+import ProjectModal from "../projects/ProjectModal";
+import ProjectThumb from "../projects/ProjectThumb";
+import SectionHead from "../ui/SectionHead";
+import { TechList } from "../ui/TechIcon";
 
-const PAGE_WIDTH = 1440;
-const PAGE_HEIGHT = 1200;
+type Filter = {
+  id: string;
+  label: string;
+  match: (p: Project) => boolean;
+};
 
-function domainOf(url: string): string {
-  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+const TYPE_ORDER: Project["type"][] = ["Client", "Hackathon", "Academic", "Personal", "Community"];
+
+const ALL_FILTERS: Filter[] = [
+  { id: "all", label: "All projects", match: () => true },
+  { id: "featured", label: "Featured", match: (p) => p.featured },
+  ...TYPE_ORDER.map((type) => ({ id: type.toLowerCase(), label: type, match: (p: Project) => p.type === type })),
+  { id: "finpro", label: "Final projects", match: (p) => Boolean(p.finalProject) },
+];
+
+/** Only offer filters that match at least one project. */
+const FILTERS = ALL_FILTERS.filter((f) => projects.some(f.match));
+
+const isGithub = (url: string) => /github\.com/i.test(url);
+
+function matchesQuery(p: Project, q: string) {
+  if (!q) return true;
+  const haystack = [p.name, p.desc, p.role, p.type, p.year, p.finalProject ?? "", p.team ?? "", ...p.stack]
+    .join(" ")
+    .toLowerCase();
+  return q
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((term) => haystack.includes(term));
 }
 
-function typeBadgeClass(type: Project["type"]): string {
-  return type === "Client" ? "type-badge type-badge--client" : "type-badge";
-}
-
-/* Scaled live-site iframe inside the modal only. */
-function ModalPreview({ url, title }: { url: string; title: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const updateScale = () => setScale(el.clientWidth / PAGE_WIDTH);
-    updateScale();
-    const ro = new ResizeObserver(updateScale);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
+function ProjectRow({ project, onOpen }: { project: Project; onOpen: (p: Project) => void }) {
+  const open = () => onOpen(project);
+  const hasDemo = Boolean(project.demo || project.video);
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: "100%",
-        height: PAGE_HEIGHT * scale,
-        overflow: "hidden",
-        position: "relative",
-        background: "var(--bg)",
-      }}
-    >
-      <div
-        style={{
-          width: PAGE_WIDTH,
-          height: PAGE_HEIGHT,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
+    <li className="proj">
+      <button
+        type="button"
+        className="proj-thumb"
+        onClick={open}
+        aria-label={`Open ${project.name} details`}
       >
-        <iframe
-          src={url}
-          title={title}
-          onLoad={() => setLoaded(true)}
-          style={{ width: "100%", height: "100%", border: "none", pointerEvents: "none" }}
-          sandbox="allow-scripts allow-forms allow-popups"
-        />
+        <ProjectThumb project={project} />
+      </button>
+
+      <div className="proj-meta">
+        <p className="proj-when">
+          <span>{project.year}</span>
+          <span className="status-dot" aria-hidden="true" />
+          <span>{project.status}</span>
+        </p>
+        <h3 className="proj-title">
+          <button type="button" onClick={open}>
+            {project.name}
+          </button>
+        </h3>
+        <p className="proj-org">
+          {project.type} · {project.role}
+        </p>
+        {(project.finalProject || project.team) && (
+          <p className="proj-note">
+            {project.finalProject ? `Final project · ${project.finalProject}` : project.team}
+          </p>
+        )}
       </div>
-      {!loaded && <div className="project-card-iframe-loading" />}
-    </div>
+
+      <div className="proj-detail">
+        <p className="proj-desc">{project.desc}</p>
+        <TechList items={project.stack} className="proj-stack" />
+        <div className="proj-actions">
+          {project.url && (
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="icon-btn"
+              aria-label={
+                isGithub(project.url)
+                  ? `View ${project.name} source on GitHub`
+                  : `Visit ${project.name}`
+              }
+              title={isGithub(project.url) ? "Source code" : "Visit site"}
+            >
+              {isGithub(project.url) ? (
+                <Code2 size={17} strokeWidth={1.75} />
+              ) : (
+                <Globe size={17} strokeWidth={1.75} />
+              )}
+            </a>
+          )}
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={open}
+            aria-label={hasDemo ? `Watch ${project.name} demo` : `Open ${project.name} details`}
+            title={hasDemo ? "Watch demo" : "Details"}
+          >
+            {hasDemo ? (
+              <Play size={16} strokeWidth={1.75} />
+            ) : (
+              <Maximize2 size={16} strokeWidth={1.75} />
+            )}
+          </button>
+        </div>
+      </div>
+    </li>
   );
 }
 
 export default function ProjectsSection({ standalone = false }: { standalone?: boolean }) {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [selected, setSelected] = useState<Project | null>(null);
+  const [filterId, setFilterId] = useState(standalone ? "all" : "featured");
+  const [query, setQuery] = useState("");
+  const searchId = useId();
+  const close = useCallback(() => setSelected(null), []);
+
+  const filter = FILTERS.find((f) => f.id === filterId) ?? FILTERS[0];
+  const visible = useMemo(
+    () => projects.filter((p) => filter.match(p) && matchesQuery(p, query.trim())),
+    [filter, query],
+  );
 
   const clientCount = projects.filter((p) => p.type === "Client").length;
   const finproCount = projects.filter((p) => p.finalProject).length;
 
-  useScrollLock(Boolean(selectedProject));
-
-  useEffect(() => {
-    if (!selectedProject) return;
-    closeButtonRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedProject(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [selectedProject]);
-
   return (
-    <>
-      <div id="projects" className="page-section">
-        {standalone ? (
-          <section className="page-head page-section">
-            <motion.p
-              className="mono-label mono-label--accent"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.6, ease: EASE, delay: 0.4 } }}
-            >
-              Selected Work
-            </motion.p>
-            <motion.h1
-              className="display-lg"
-              style={{ marginTop: "1rem" }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE, delay: 0.5 } }}
-            >
-              Projects<span className="text-accent">.</span>
-            </motion.h1>
-            <motion.p
-              className="lead"
-              style={{ marginTop: "1.5rem", maxWidth: "36rem" }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.7, ease: EASE, delay: 0.7 } }}
-            >
-              Production work for real clients alongside self-initiated builds — every project
-              designed, developed, and deployed end to end.
-            </motion.p>
-            <motion.p
-              className="mono-label projects-head-meta"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.7, ease: EASE, delay: 0.85 } }}
-            >
-              {projects.length} projects · {clientCount} client builds · {finproCount} final projects
-            </motion.p>
-          </section>
-        ) : (
-          <motion.div
-            className="sec-inline-head"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } }}
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            <p className="mono-label mono-label--accent">Selected Work</p>
-            <h2 className="sec-heading">
-              Projects<span className="text-accent">.</span>
-            </h2>
-            <p className="mono-label projects-head-meta">
-              {projects.length} projects · {clientCount} client builds · {finproCount} final projects
-            </p>
-          </motion.div>
-        )}
+    <section id="projects" className="section">
+      <div className="container">
+        <SectionHead
+          title="Designed and built"
+          titleMuted="end to end."
+          lead="Production work for real clients alongside self-initiated builds — every project designed, developed, and deployed end to end."
+          level={standalone ? "h1" : "h2"}
+          aside={
+            <label className="search" htmlFor={searchId}>
+              <Search size={16} strokeWidth={1.75} aria-hidden="true" />
+              <span className="sr-only">Search projects</span>
+              <input
+                id={searchId}
+                type="search"
+                placeholder="Search all projects"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+          }
+        />
 
-        <section className="projects-block projects-block--showcase page-section">
-          {standalone && (
-            <div className="projects-block-head">
-              <h2 className="mono-label mono-label--accent">All Projects</h2>
-            </div>
+        <FadeIn>
+          <div className="tabs tabs--ruled" role="group" aria-label="Filter projects">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={f.id === filter.id}
+                className={`tab${f.id === filter.id ? " is-active" : ""}`}
+                onClick={() => setFilterId(f.id)}
+              >
+                {f.label}
+                <span className="tab-count">{projects.filter(f.match).length}</span>
+              </button>
+            ))}
+          </div>
+
+          <p className="proj-count" aria-live="polite">
+            {visible.length} {visible.length === 1 ? "project" : "projects"}
+            {query.trim() && ` matching “${query.trim()}”`}
+            <span className="proj-count-meta">
+              {" "}
+              · {clientCount} client builds · {finproCount} final projects
+            </span>
+          </p>
+
+          {visible.length > 0 ? (
+            <ul className="proj-list">
+              {visible.map((p) => (
+                <ProjectRow key={p.id} project={p} onOpen={setSelected} />
+              ))}
+            </ul>
+          ) : (
+            <p className="proj-empty">
+              No projects match that search.{" "}
+              <button type="button" className="link-btn" onClick={() => { setQuery(""); setFilterId("all"); }}>
+                Show all projects
+              </button>
+            </p>
           )}
-          <ProjectsShowcase items={projects} onOpen={setSelectedProject} />
-        </section>
+        </FadeIn>
       </div>
 
-      <AnimatePresence>
-        {selectedProject && (
-          <motion.div
-            key={selectedProject.id}
-            className="project-modal-overlay"
-            data-lenis-prevent
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.25, ease: "easeOut" } }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            onClick={() => setSelectedProject(null)}
-          >
-            <motion.div
-              className="project-modal"
-              data-lenis-prevent
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="project-modal-title"
-              variants={modalPanel}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                ref={closeButtonRef}
-                type="button"
-                className="project-modal-close"
-                onClick={() => setSelectedProject(null)}
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
-
-              <div className="project-modal-preview">
-                <div className="project-modal-chrome">
-                  <span className="chrome-dots" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  {selectedProject.url ? (
-                    <>
-                      <a
-                        href={selectedProject.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="chrome-url"
-                        title={`Visit ${selectedProject.name} live website`}
-                      >
-                        {domainOf(selectedProject.url)}
-                      </a>
-                      <a
-                        href={selectedProject.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="chrome-open"
-                        aria-label={`Open ${selectedProject.name} in new tab`}
-                      >
-                        <ExternalLink size={13} />
-                      </a>
-                    </>
-                  ) : (
-                    <span className="chrome-url chrome-url--static">{selectedProject.stack[0]}</span>
-                  )}
-                </div>
-                <div className="project-modal-preview-scroll" data-lenis-prevent>
-                  {selectedProject.gallery ? (
-                    <div className="project-modal-gallery">
-                      {selectedProject.gallery.map((shot) => (
-                        <figure key={shot.src}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={shot.src} alt={shot.caption} loading="lazy" decoding="async" />
-                          <figcaption className="mono-label">{shot.caption}</figcaption>
-                        </figure>
-                      ))}
-                    </div>
-                  ) : selectedProject.video ? (
-                    <video
-                      src={selectedProject.video}
-                      poster={selectedProject.image}
-                      title={selectedProject.imageAlt}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      controls
-                      className="project-modal-video"
-                    />
-                  ) : selectedProject.url ? (
-                    <ModalPreview url={selectedProject.url} title={selectedProject.imageAlt} />
-                  ) : null}
-                </div>
-              </div>
-
-              <motion.div
-                className="project-modal-body"
-                data-lenis-prevent
-                variants={modalContentStagger}
-                initial="hidden"
-                animate="visible"
-              >
-                <motion.div variants={modalItem} className="badge-row">
-                  <span className={typeBadgeClass(selectedProject.type)}>{selectedProject.type}</span>
-                  {selectedProject.finalProject && (
-                    <span className="type-badge type-badge--finpro">Final Project</span>
-                  )}
-                  <span className="mono-label">{selectedProject.year}</span>
-                </motion.div>
-                <motion.h3 variants={modalItem} id="project-modal-title" className="project-modal-title">
-                  {selectedProject.name}
-                </motion.h3>
-                <motion.p variants={modalItem} className="mono-label mono-label--accent">
-                  {selectedProject.role}
-                </motion.p>
-                {selectedProject.finalProject && (
-                  <motion.p variants={modalItem} className="mono-label project-modal-course">
-                    Final project · {selectedProject.finalProject}
-                    {selectedProject.team ? ` · ${selectedProject.team}` : ""}
-                  </motion.p>
-                )}
-                <motion.p variants={modalItem} className="project-modal-desc">
-                  {selectedProject.desc}
-                </motion.p>
-                <motion.div variants={modalItem} className="project-modal-section">
-                  <p className="mono-label project-modal-section-label">Highlights</p>
-                  <ul className="modal-highlights">
-                    {selectedProject.highlights.map((h) => (
-                      <li key={h}>{h}</li>
-                    ))}
-                  </ul>
-                </motion.div>
-                <motion.div variants={modalItem} className="project-modal-section">
-                  <p className="mono-label project-modal-section-label">Stack</p>
-                  <ul className="chip-row" aria-label="Tech stack">
-                    {selectedProject.stack.map((tech) => (
-                      <li key={tech} className="chip">
-                        {tech}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-                <motion.div variants={modalItem} className="project-modal-actions">
-                  {selectedProject.url && (
-                    <MagneticButton
-                      href={selectedProject.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn--accent"
-                    >
-                      {selectedProject.linkLabel ??
-                        (selectedProject.video ? "Play the game" : "View live site")}
-                      <ExternalLink size={14} />
-                    </MagneticButton>
-                  )}
-                  <MagneticButton type="button" className="btn" onClick={() => setSelectedProject(null)}>
-                    Close
-                  </MagneticButton>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+      <ProjectModal project={selected} onClose={close} />
+    </section>
   );
 }

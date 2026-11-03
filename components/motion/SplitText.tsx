@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
+import useReducedMotion from "../../lib/useReducedMotion";
 import { EASE } from "../../lib/animations";
 
 type SplitTextProps = {

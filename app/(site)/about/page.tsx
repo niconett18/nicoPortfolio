@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AboutSection from "../../../components/sections/AboutSection";
+import ExperienceSection from "../../../components/sections/ExperienceSection";
 
 export const metadata: Metadata = {
   title: "About",
@@ -9,5 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  return <AboutSection standalone />;
+  return (
+    <>
+      <AboutSection standalone />
+      <ExperienceSection />
+    </>
+  );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import useReducedMotion from "../../lib/useReducedMotion";
 
 /**
  * Scroll-linked opacity highlight — like lenis.dev's text focus effect.

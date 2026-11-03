@@ -4,28 +4,30 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { SiGithub, SiInstagram } from "react-icons/si";
-import { EASE } from "../lib/animations";
+import { Clock } from "lucide-react";
+import { socials, profile } from "../lib/profile";
 import { useScrollLock } from "../lib/useScrollLock";
 import { useLenis } from "./motion/LenisProvider";
 import { scrollToSection } from "./nav/scrollToSection";
 import { useScrollSpy } from "./nav/useScrollSpy";
+import JakartaClock from "./ui/JakartaClock";
 
 const NAV = [
-  { id: "hero", label: "Home" },
-  { id: "projects", label: "Projects" },
   { id: "about", label: "About" },
-  { id: "contact", label: "Contact" },
+  { id: "experience", label: "Experience" },
+  { id: "projects", label: "Projects" },
 ] as const;
 
-const SECTION_IDS = NAV.map((item) => item.id);
+const CONNECT_ID = "contact";
+const SECTION_IDS = ["hero", ...NAV.map((item) => item.id), CONNECT_ID];
+
+const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export default function Header() {
   const pathname = usePathname();
   const lenis = useLenis();
   const onHome = pathname === "/";
   const { activeId, setActiveOptimistic } = useScrollSpy(SECTION_IDS, onHome);
-
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pendingScrollRef = useRef<string | null>(null);
@@ -38,7 +40,7 @@ export default function Header() {
   };
 
   const isActive = (id: string) =>
-    onHome ? activeId === id : id !== "hero" && pathname.startsWith(`/${id}`);
+    onHome ? activeId === id : pathname.startsWith(`/${id}`);
 
   const goToSection = (id: string) => {
     setActiveOptimistic(id);
@@ -58,10 +60,8 @@ export default function Header() {
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -93,68 +93,60 @@ export default function Header() {
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
+  /** Same-page anchor on home, a route link everywhere else. */
+  const navAnchor = (id: string, className: string, label: string) => {
+    const active = isActive(id);
+    const props = {
+      className: `${className}${active ? " is-active" : ""}`,
+      "aria-current": active ? ("page" as const) : undefined,
+    };
+    return onHome ? (
+      <a key={id} href={hrefFor(id)} onClick={(e) => handleNavClick(e, id)} {...props}>
+        {label}
+      </a>
+    ) : (
+      <Link key={id} href={hrefFor(id)} {...props}>
+        {label}
+      </Link>
+    );
+  };
+
   return (
     <>
-      <header className={`header ${scrolled ? "header--scrolled" : ""}`}>
-        {onHome ? (
-          <a
-            href="#hero"
-            className="header-brand"
-            onClick={(e) => handleNavClick(e, "hero")}
+      <header className={`header${scrolled ? " header--scrolled" : ""}`}>
+        <div className="header-inner">
+          {onHome ? (
+            <a
+              href="#hero"
+              className="header-clock"
+              onClick={(e) => handleNavClick(e, "hero")}
+              aria-label={`${profile.name}, back to top`}
+            >
+              <Clock size={16} strokeWidth={1.75} aria-hidden="true" />
+              <JakartaClock className="clock" />
+            </a>
+          ) : (
+            <Link href="/" className="header-clock" aria-label={`${profile.name}, home`}>
+              <Clock size={16} strokeWidth={1.75} aria-hidden="true" />
+              <JakartaClock className="clock" />
+            </Link>
+          )}
+
+          <nav className="header-nav" aria-label="Main navigation">
+            {NAV.map((item) => navAnchor(item.id, "nav-link", item.label))}
+            {navAnchor(CONNECT_ID, "nav-connect", "Connect")}
+          </nav>
+
+          <button
+            type="button"
+            className="menu-trigger"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-controls="site-menu"
           >
-            <span className="header-brand-dot" aria-hidden="true" />
-            <span className="header-brand-text">Nicholas Edmund Tanaka</span>
-          </a>
-        ) : (
-          <Link href="/" className="header-brand">
-            <span className="header-brand-dot" aria-hidden="true" />
-            <span className="header-brand-text">Nicholas Edmund Tanaka</span>
-          </Link>
-        )}
-
-        <nav className="header-nav" aria-label="Main navigation">
-          {NAV.map((item) => {
-            const active = isActive(item.id);
-            const href = hrefFor(item.id);
-            const content = (
-              <span className="flip">
-                <span className="flip-inner" data-text={item.label}>
-                  {item.label}
-                </span>
-              </span>
-            );
-            return onHome ? (
-              <a
-                key={item.id}
-                href={href}
-                className={`nav-link ${active ? "nav-link--active" : ""}`}
-                aria-current={active ? "page" : undefined}
-                onClick={(e) => handleNavClick(e, item.id)}
-              >
-                {content}
-              </a>
-            ) : (
-              <Link
-                key={item.id}
-                href={href}
-                className={`nav-link ${active ? "nav-link--active" : ""}`}
-                aria-current={active ? "page" : undefined}
-              >
-                {content}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <button
-          type="button"
-          className="menu-trigger"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-expanded={menuOpen}
-          aria-controls="site-menu"
-        >
-          {menuOpen ? "Close" : "Menu"}
-        </button>
+            {menuOpen ? "Close" : "Menu"}
+          </button>
+        </div>
       </header>
 
       <AnimatePresence>
@@ -163,72 +155,52 @@ export default function Header() {
             id="site-menu"
             className="menu-overlay"
             data-lenis-prevent
-            initial={{ clipPath: "inset(0 0 100% 0)" }}
-            animate={{ clipPath: "inset(0 0 0% 0)" }}
-            exit={{ clipPath: "inset(0 0 100% 0)" }}
-            transition={{ duration: 0.6, ease: EASE }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: EASE_OUT }}
           >
             <nav className="menu-nav" aria-label="Mobile navigation">
-              {NAV.map((item, i) => {
+              {[...NAV, { id: CONNECT_ID, label: "Connect" }].map((item, i) => {
                 const active = isActive(item.id);
                 return (
-                  <motion.div
+                  <motion.a
                     key={item.id}
-                    initial={{ opacity: 0, y: 28 }}
+                    href={hrefFor(item.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      closeMenu(item.id);
+                    }}
+                    className={`menu-link${active ? " is-active" : ""}`}
+                    aria-current={active ? "page" : undefined}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{
                       opacity: 1,
                       y: 0,
-                      transition: { duration: 0.6, ease: EASE, delay: 0.15 + i * 0.06 },
+                      transition: { duration: 0.4, ease: EASE_OUT, delay: 0.05 + i * 0.04 },
                     }}
-                    exit={{ opacity: 0, transition: { duration: 0.2 } }}
                   >
-                    <a
-                      href={hrefFor(item.id)}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        closeMenu(item.id);
-                      }}
-                      className={`menu-link ${active ? "menu-link--active" : ""}`}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      {item.label}
-                    </a>
-                  </motion.div>
+                    {item.label}
+                  </motion.a>
                 );
               })}
             </nav>
 
-            <motion.div
-              className="menu-foot"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.5, delay: 0.45 } }}
-              exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            >
-              <span className="mono-label status-chip">
-                <span className="status-chip-dot" aria-hidden="true" />
-                Available for work
+            <div className="menu-foot">
+              <span className="status">
+                <span className="status-dot" aria-hidden="true" />
+                {profile.status}
               </span>
-              <span style={{ display: "flex", gap: "1.25rem" }}>
-                <a
-                  href="https://github.com/niconett18"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mono-label"
-                >
-                  <SiGithub size={14} style={{ marginRight: "0.4rem", display: "inline" }} />
-                  GitHub
-                </a>
-                <a
-                  href="https://www.instagram.com/niconet18/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mono-label"
-                >
-                  <SiInstagram size={14} style={{ marginRight: "0.4rem", display: "inline" }} />
-                  Instagram
-                </a>
+              <span className="menu-foot-links">
+                {socials
+                  .filter((s) => s.label !== "Email")
+                  .map((s) => (
+                    <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer">
+                      {s.label}
+                    </a>
+                  ))}
               </span>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

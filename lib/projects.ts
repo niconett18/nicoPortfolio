@@ -18,6 +18,8 @@ export type Project = {
   image?: string;
   /** Muted looping preview the card autoplays in place of the screenshot. */
   video?: string;
+  /** Recorded scroll-through of the live site, played in the project popup. */
+  demo?: string;
   /** Screenshots shown in the modal when there is no live site or video to preview. */
   gallery?: { src: string; caption: string }[];
   /** Course name when this was a university final project (finpro); shows a Final Project badge. */
@@ -44,6 +46,8 @@ export const projects: Project[] = [
     ],
     featured: true,
     imageAlt: 'ClariPet live website preview',
+    image: '/projects/claripet.webp',
+    demo: '/projects/claripet-demo.mp4',
   },
   {
     id: 11,
@@ -62,7 +66,7 @@ export const projects: Project[] = [
       'Built the Scout evidence agent on Europe PMC literature and Open Beauty Facts products; ran the server release, live demo, and pitch deck',
       'Gaussian-process Bayesian optimization reached an all-spec formula in a median 2 to 3 batches, 62 to 78% fewer than random search',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'Rimula Agents formulation dashboard demo',
     image: '/projects/rimula-poster.jpg',
     video: '/projects/rimula.mp4',
@@ -83,7 +87,7 @@ export const projects: Project[] = [
       'Patient vitals, difficulty-scaled illnesses, and a surgical tool system built on the four OOP pillars',
       'Spring Boot 3 REST API with JWT auth and a PostgreSQL-backed leaderboard',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'YuSurg final project presentation',
     image: '/projects/yusurg-poster.jpg',
     video: '/projects/yusurg.mp4',
@@ -106,7 +110,7 @@ export const projects: Project[] = [
       'Parallel dataflow ones-complement checksum, TTL drop logic, and a ROM-based exact-match firewall',
       'Integrates every practicum style in one design: dataflow, behavioral, structural, loops, functions, FSM, and microcode',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'RTL view of the IPv4 packet processor in Quartus',
     image: '/projects/psd-packet-processor.webp',
     gallery: [
@@ -129,7 +133,7 @@ export const projects: Project[] = [
       'Router-on-a-stick gateways, trunked switches, and point-to-point /30 WAN links between all three sites',
       'Centralized DHCP, DNS, web, and email services plus an access point for wireless clients',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'Packet Tracer topology of the three-site sports event network',
     image: '/projects/jarkom-event-network.webp',
     gallery: [
@@ -154,7 +158,7 @@ export const projects: Project[] = [
       'Wide-column data model on Cassandra, partitioned by channel for fast chronological reads',
       'Case study of Discord on Cassandra informed the schema and query design',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'FTAnnounce project title slide',
     image: '/projects/ftannounce.webp',
     team: 'Team of 5 · Kelompok 4',
@@ -177,6 +181,7 @@ export const projects: Project[] = [
     ],
     featured: true,
     imageAlt: 'Prime Capital Ledger live website preview',
+    demo: '/projects/primecapitaledger-demo.mp4',
     image: '/projects/primecapitaledger.webp',
   },
   {
@@ -196,12 +201,13 @@ export const projects: Project[] = [
     ],
     featured: true,
     imageAlt: 'Sumopower live website preview',
+    demo: '/projects/sumopower-demo.mp4',
     image: '/projects/sumopower.webp',
   },
   {
     id: 3,
     name: 'cloudream.id',
-    url: 'https://cloudream.id',
+    url: 'https://clouddreams.vercel.app',
     desc: 'Company platform for a B2B cloud-services provider, designed and developed from scratch — services catalog, value-proposition pages, and lead generation.',
     role: 'Design & Development',
     type: 'Client',
@@ -213,7 +219,7 @@ export const projects: Project[] = [
       'B2B-focused information architecture and lead capture',
       'Production deployment with custom domain and hosting',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'Cloudream live website preview',
     image: '/projects/cloudream.webp',
   },
@@ -232,7 +238,7 @@ export const projects: Project[] = [
       'WAN and traffic control: PPP and Frame Relay links, plus class-based QoS for SSH, HTTP, and voice traffic',
       'Operations: NetFlow and SNMP monitoring, an SDN network controller, and Ansible playbooks configuring VyOS routers',
     ],
-    featured: true,
+    featured: false,
     imageAlt: 'Cisco Packet Tracer topology of a site-to-site IPsec VPN',
     image: '/projects/cisco-networking-labs.webp',
     gallery: [
@@ -259,6 +265,7 @@ export const projects: Project[] = [
     ],
     featured: false,
     imageAlt: 'Idzhar Dwi Karya live website preview',
+    demo: '/projects/izhadwikarya-demo.mp4',
     image: '/projects/izhadwikarya.webp',
   },
   {
@@ -278,6 +285,7 @@ export const projects: Project[] = [
     ],
     featured: false,
     imageAlt: 'Fore Nico live website preview',
+    demo: '/projects/fore-demo.mp4',
     image: '/projects/fore.webp',
   },
   {
@@ -297,25 +305,7 @@ export const projects: Project[] = [
     ],
     featured: false,
     imageAlt: 'G2M Church live website preview',
+    demo: '/projects/g2mchurch-demo.mp4',
     image: '/projects/g2mchurch.webp',
-  },
-  {
-    id: 7,
-    name: 'TaskFlow',
-    url: 'https://todolistbynico.vercel.app',
-    desc: 'Minimalist task manager for students — quick capture, clean lists, and a distraction-free interface.',
-    role: 'Product Build',
-    type: 'Personal',
-    status: 'Deployed',
-    year: '2024',
-    stack: ['React', 'Vite', 'Vercel'],
-    highlights: [
-      'Built with React + Vite for instant interactions',
-      'Minimal, distraction-free task UI',
-      'Deployed on Vercel',
-    ],
-    featured: false,
-    imageAlt: 'TaskFlow live website preview',
-    image: '/projects/todolist.webp',
   },
 ];

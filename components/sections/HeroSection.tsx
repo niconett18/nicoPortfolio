@@ -1,19 +1,19 @@
 "use client";
 
-import { useRef } from "react";
 import Image from "next/image";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
-import { EASE } from "../../lib/animations";
+import { ArrowUpRight, Send } from "lucide-react";
+import { IoMail } from "react-icons/io5";
+import { SiGithub, SiInstagram } from "react-icons/si";
 import portraitSrc from "../../assets/portrait.png";
-import MagneticButton from "../motion/MagneticButton";
-import SplitText from "../motion/SplitText";
+import { profile, socials } from "../../lib/profile";
 import { useLenis } from "../motion/LenisProvider";
+import FadeIn from "../motion/FadeIn";
 import { scrollToSection } from "../nav/scrollToSection";
 
+const SOCIAL_ICONS = { GitHub: SiGithub, Email: IoMail, Instagram: SiInstagram } as const;
+const SOCIAL_ORDER = ["GitHub", "Email", "Instagram"] as const;
+
 export default function HeroSection() {
-  const heroRef = useRef<HTMLElement>(null);
-  const reduce = useReducedMotion();
   const lenis = useLenis();
 
   const goTo = (id: string) => (e: React.MouseEvent) => {
@@ -22,83 +22,66 @@ export default function HeroSection() {
     history.replaceState(null, "", `#${id}`);
   };
 
-  // Portrait drifts down slightly as the hero scrolls away.
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const portraitY = useTransform(scrollYProgress, [0, 1], [0, 70]);
-
   return (
-    <section id="hero" ref={heroRef} className="hero page-section">
-      <motion.div
-        className="hero-meta-row"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, transition: { duration: 0.6, ease: EASE, delay: 0.4 } }}
-      >
-        <span className="mono-label">Fullstack Developer</span>
-        <span className="mono-label status-chip">
-          <span className="status-chip-dot" aria-hidden="true" />
-          Available for work
-        </span>
-      </motion.div>
-
-      <div className="hero-grid">
-        <h1 className="hero-name-block">
-          <span className="display-xl" style={{ display: "block" }}>
-            <SplitText text="Nicholas" delay={0.5} />
-          </span>
-          <span className="display-xl hero-name-line2" style={{ display: "block" }}>
-            <SplitText text="Edmund" delay={0.7} />
-            <span className="text-accent">.</span>
-          </span>
-        </h1>
-
-        <motion.div
-          className="hero-portrait"
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            transition: { duration: 0.9, ease: EASE, delay: 0.35 },
-          }}
-          style={reduce ? undefined : { y: portraitY }}
-        >
-          <div className="hero-portrait-frame">
-            <Image
-              src={portraitSrc}
-              alt="Portrait of Nicholas Edmund Tanaka"
-              priority
-              placeholder="blur"
-              quality={85}
-              className="hero-portrait-img"
-              sizes="(min-width: 820px) 24rem, 18rem"
-            />
-            <span className="hero-portrait-caption mono-label">Portrait — JKT, ID</span>
-          </div>
-        </motion.div>
-      </div>
-
-      <motion.div
-        className="hero-bottom"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE, delay: 0.95 } }}
-      >
-        <p className="lead">
-          Computer Engineering student at Universitas Indonesia, building sharp,
-          high-performance web applications with precision engineering and modern tooling.
-        </p>
-        <div className="hero-actions">
-          <MagneticButton href="#projects" onClick={goTo("projects")} className="btn btn--accent">
-            View projects
-            <ArrowUpRight size={14} strokeWidth={2} />
-          </MagneticButton>
-          <MagneticButton href="#contact" onClick={goTo("contact")} className="btn">
-            Get in touch
-          </MagneticButton>
+    <section id="hero" className="hero">
+      <div className="hero-inner">
+        <div className="hero-copy">
+          <FadeIn onMount delay={0.05}>
+            <p className="status">
+              <span className="status-dot" aria-hidden="true" />
+              Available for work
+            </p>
+          </FadeIn>
+          <FadeIn onMount delay={0.1}>
+            <h1 className="hero-name">{profile.shortName}</h1>
+          </FadeIn>
+          <FadeIn onMount delay={0.18}>
+            <p className="hero-role">{profile.subtitle}</p>
+          </FadeIn>
+          <FadeIn onMount delay={0.26} className="hero-actions">
+            <a href="#contact" onClick={goTo("contact")} className="btn btn--solid">
+              <Send size={15} strokeWidth={1.75} aria-hidden="true" />
+              Get In Touch
+            </a>
+            <a href="#projects" onClick={goTo("projects")} className="btn">
+              View Projects
+              <ArrowUpRight size={15} strokeWidth={1.75} aria-hidden="true" />
+            </a>
+          </FadeIn>
+          <FadeIn onMount delay={0.32}>
+            <ul className="hero-socials" aria-label="Elsewhere">
+              {SOCIAL_ORDER.map((label) => {
+                const link = socials.find((s) => s.label === label)!;
+                const Icon = SOCIAL_ICONS[label];
+                const external = link.href.startsWith("http");
+                return (
+                  <li key={label}>
+                    <a
+                      href={link.href}
+                      aria-label={label === "Email" ? `Email ${link.value}` : `${label}: ${link.value}`}
+                      title={label}
+                      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    >
+                      <Icon aria-hidden="true" />
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </FadeIn>
         </div>
-      </motion.div>
 
+        <FadeIn onMount delay={0.15} className="hero-portrait">
+          <Image
+            src={portraitSrc}
+            alt={`Portrait of ${profile.name}`}
+            priority
+            placeholder="blur"
+            className="hero-portrait-img"
+            sizes="(min-width: 900px) 22rem, 70vw"
+          />
+        </FadeIn>
+      </div>
     </section>
   );
 }

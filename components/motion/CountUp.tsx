@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { animate, useInView, useReducedMotion } from "framer-motion";
+import { animate, useInView } from "framer-motion";
+import useReducedMotion from "../../lib/useReducedMotion";
 import { EASE } from "../../lib/animations";
 
 type CountUpProps = {

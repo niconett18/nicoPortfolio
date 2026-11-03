@@ -6,7 +6,7 @@ import { MessageCircle, Send, Bot, User, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { modalContentStagger, modalItem, modalPanel } from "../lib/animations";
 import { useScrollLock } from "../lib/useScrollLock";
-import { CLOSE_CHAT_EVENT } from "../lib/chatEvents";
+import { CLOSE_CHAT_EVENT, OPEN_CHAT_EVENT } from "../lib/chatEvents";
 
 interface Message {
   role: "user" | "assistant";
@@ -64,6 +64,12 @@ export default function ChatWidget() {
     const handler = () => setOpen(false);
     window.addEventListener(CLOSE_CHAT_EVENT, handler);
     return () => window.removeEventListener(CLOSE_CHAT_EVENT, handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(OPEN_CHAT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, handler);
   }, []);
 
   useEffect(() => {
