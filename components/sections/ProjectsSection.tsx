@@ -76,7 +76,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const clientCount = projects.filter((p) => p.type === "Client").length;
-  const soloCount = projects.filter((p) => !p.team).length;
+  const finproCount = projects.filter((p) => p.finalProject).length;
 
   useScrollLock(Boolean(selectedProject));
 
@@ -124,7 +124,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: 0.7, ease: EASE, delay: 0.85 } }}
             >
-              {projects.length} projects · {clientCount} client builds · {soloCount} shipped solo
+              {projects.length} projects · {clientCount} client builds · {finproCount} final projects
             </motion.p>
           </section>
         ) : (
@@ -139,7 +139,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
               Projects<span className="text-accent">.</span>
             </h2>
             <p className="mono-label projects-head-meta">
-              {projects.length} projects · {clientCount} client builds · {soloCount} shipped solo
+              {projects.length} projects · {clientCount} client builds · {finproCount} final projects
             </p>
           </motion.div>
         )}
@@ -221,7 +221,7 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                   )}
                 </div>
                 <div className="project-modal-preview-scroll" data-lenis-prevent>
-                  {selectedProject.gallery && !selectedProject.url ? (
+                  {selectedProject.gallery ? (
                     <div className="project-modal-gallery">
                       {selectedProject.gallery.map((shot) => (
                         <figure key={shot.src}>
@@ -258,6 +258,9 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
               >
                 <motion.div variants={modalItem} className="badge-row">
                   <span className={typeBadgeClass(selectedProject.type)}>{selectedProject.type}</span>
+                  {selectedProject.finalProject && (
+                    <span className="type-badge type-badge--finpro">Final Project</span>
+                  )}
                   <span className="mono-label">{selectedProject.year}</span>
                 </motion.div>
                 <motion.h3 variants={modalItem} id="project-modal-title" className="project-modal-title">
@@ -266,6 +269,12 @@ export default function ProjectsSection({ standalone = false }: { standalone?: b
                 <motion.p variants={modalItem} className="mono-label mono-label--accent">
                   {selectedProject.role}
                 </motion.p>
+                {selectedProject.finalProject && (
+                  <motion.p variants={modalItem} className="mono-label project-modal-course">
+                    Final project · {selectedProject.finalProject}
+                    {selectedProject.team ? ` · ${selectedProject.team}` : ""}
+                  </motion.p>
+                )}
                 <motion.p variants={modalItem} className="project-modal-desc">
                   {selectedProject.desc}
                 </motion.p>

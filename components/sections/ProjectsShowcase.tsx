@@ -102,6 +102,9 @@ function ShowcaseCard({ project, onOpen }: { project: Project; onOpen: () => voi
       >
         <CardMedia project={project} />
         <span className="showcase-card-badge">{project.status}</span>
+        {project.finalProject && (
+          <span className="showcase-card-finpro">Final Project</span>
+        )}
         <span className="showcase-card-arrow" aria-hidden="true">
           <ArrowUpRight />
         </span>
@@ -113,6 +116,9 @@ function ShowcaseCard({ project, onOpen }: { project: Project; onOpen: () => voi
         </button>
         <div className="showcase-card-credits">
           <span>{project.role}</span>
+          {project.finalProject && (
+            <span className="showcase-card-course">{project.finalProject}</span>
+          )}
         </div>
       </div>
     </div>
